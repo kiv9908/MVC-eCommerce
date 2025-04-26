@@ -1,0 +1,86 @@
+html,
+body {
+    height: 100%;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #212529;
+    min-height: 100vh;
+    padding-top: 56px; /* 네비게이션 바 높이만큼 패딩 추가 */
+}
+
+.form-signin {
+    max-width: 480px;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.form-signin .form-floating:focus-within {
+    z-index: 2;
+}
+
+.form-signin input {
+    margin-bottom: 8px;
+}
+
+.form-signin .btn-primary {
+    background-color: #6a11cb;
+    border-color: #6a11cb;
+    margin-top: 1rem;
+    font-weight: 500;
+    padding: 0.75rem;
+}
+
+.form-signin .btn-primary:hover {
+    background-color: #5a0db6;
+    border-color: #5a0db6;
+}
+
+.form-signin h1 {
+    font-weight: 700;
+    color: #6a11cb;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-signin a {
+    color: #6a11cb;
+    text-decoration: none;
+}
+
+.form-signin a:hover {
+    text-decoration: underline;
+}
+
+.form-control:focus {
+    border-color: #6a11cb;
+    box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
+}
+
+.alert {
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+}
+
+.logo-area {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.logo-area h2 {
+    color: #6a11cb;
+    font-weight: 700;
+    margin: 0;
+}
+
+.password-hint {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}

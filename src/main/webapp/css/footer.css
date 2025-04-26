@@ -1,0 +1,49 @@
+/* 푸터 스타일 */
+footer {
+    background-color: #212529;
+    color: #f8f9fa;
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+footer h5 {
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: #ffffff;
+}
+
+footer p {
+    opacity: 0.8;
+}
+
+footer ul.list-unstyled li {
+    margin-bottom: 0.5rem;
+}
+
+footer a {
+    color: #f8f9fa;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: #6a11cb;
+    text-decoration: underline;
+}
+
+footer hr.bg-light {
+    opacity: 0.1;
+}
+
+/* 소셜 미디어 아이콘을 위한 스타일 (추후 확장) */
+.social-icons a {
+    display: inline-block;
+    margin-right: 1rem;
+    font-size: 1.25rem;
+}
+
+/* 저작권 문구 */
+footer .text-center p {
+    font-size: 0.9rem;
+    opacity: 0.6;
+}

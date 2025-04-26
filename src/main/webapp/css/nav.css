@@ -1,0 +1,71 @@
+/* 네비게이션 바 스타일 */
+.navbar {
+    transition: all 0.3s ease;
+    padding: 0.75rem 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #6a11cb;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+    color: #5a0db6;
+    transform: scale(1.05);
+}
+
+.nav-item {
+    margin: 0 0.25rem;
+}
+
+.nav-item .nav-link {
+    color: #495057;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.nav-item .nav-link:hover {
+    color: #6a11cb;
+    background-color: rgba(106, 17, 203, 0.05);
+}
+
+.nav-item .nav-link.active {
+    color: #6a11cb;
+    background-color: rgba(106, 17, 203, 0.1);
+}
+
+/* 로그인/로그아웃 버튼 스타일 */
+.nav-item:last-child .nav-link {
+    margin-left: 0.5rem;
+}
+
+/* 모바일 대응 */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 0.5rem;
+    }
+    
+    .nav-item {
+        margin: 0.25rem 0;
+    }
+    
+    .nav-item .nav-link {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* 스크롤 시 네비게이션 바 스타일 변경 (JavaScript와 함께 사용) */
+.navbar.scrolled {
+    padding: 0.5rem 0;
+    background-color: white !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
