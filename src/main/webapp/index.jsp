@@ -7,9 +7,9 @@
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/nav.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/footer.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/nav.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/footer.css">
 </head>
 <body>
     <!-- 네비게이션 바 포함 -->
@@ -23,7 +23,7 @@
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                 <a href="${pageContext.request.contextPath}/product/list" class="btn btn-light btn-lg px-4 me-sm-3">상품 보기</a>
                 <% if(session.getAttribute("isLoggedIn") == null || !(Boolean)session.getAttribute("isLoggedIn")) { %>
-                    <a href="${pageContext.request.contextPath}/user/signup" class="btn btn-outline-light btn-lg px-4">회원가입</a>
+                    <a href="${pageContext.request.contextPath}/user/join" class="btn btn-outline-light btn-lg px-4">회원가입</a>
                 <% } %>
             </div>
         </div>
@@ -119,7 +119,7 @@
                 <div class="col-md-6">
                     <h2>지금 회원가입하고 특별한 혜택을 받으세요!</h2>
                     <p class="lead">회원가입 시 즉시 사용 가능한 5,000원 할인 쿠폰을 드립니다. 또한 회원 전용 이벤트와 프로모션 정보를 가장 먼저 받아보실 수 있습니다.</p>
-                    <a href="${pageContext.request.contextPath}/user/signup" class="btn btn-primary">회원가입하기</a>
+                    <a href="${pageContext.request.contextPath}/user/join" class="btn btn-primary">회원가입하기</a>
                 </div>
                 <div class="col-md-6">
                     <div class="bg-secondary rounded p-5 text-white d-flex align-items-center justify-content-center" style="height: 300px;">

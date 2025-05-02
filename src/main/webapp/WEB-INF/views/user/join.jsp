@@ -5,19 +5,16 @@
     <title>회원가입 - 쇼핑몰</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/signup.css"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/nav.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/join.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/nav.css"/>
 </head>
 <body class="d-flex align-items-center justify-content-center py-4">
 <!-- 네비게이션 바 포함 -->
 <%@ include file="/WEB-INF/includes/nav.jsp" %>
 <main class="form-signin w-100 m-auto">
-    <form action="${pageContext.request.contextPath}/user/signup" method="post" accept-charset="UTF-8">
+    <form action="${pageContext.request.contextPath}/user/join" method="post" accept-charset="UTF-8">
         <h1 class="h3 mb-3">회원가입</h1>
 
         <% if(request.getAttribute("errorMessage") != null) { %>
@@ -44,7 +41,7 @@
         </div>
         
         <div class="password-hint">
-            비밀번호는 대문자, 소문자, 숫자를 모두 포함하여 5~15자여야 합니다.
+            비밀번호는 대문자 또는 소문자와 숫자를 포함한 5~15자여야 합니다.
         </div>
         
         <button class="btn btn-primary w-100 py-2" type="submit">회원가입</button>

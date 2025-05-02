@@ -1,19 +1,18 @@
 package service;
 
 import domain.model.User;
-import domain.repository.UserRepository;
+import domain.dao.UserDAO;
 import exception.*;
 
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
 public class UserService {
 
-    private final UserRepository userRepository;
+    private final UserDAO userDAO;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
 
     public void register(User user) throws InvalidEmailException, InvalidPasswordException, DuplicateEmailException, UserWithdrawnException {
@@ -23,12 +22,12 @@ public class UserService {
             throw new InvalidEmailException("유효하지 않은 이메일 형식입니다: " + user.getEmail());
         }
 
-        if (!isValidPassword(user.getPassword())) {
+        if (isValidPassword(user.getPassword())) {
             throw new InvalidPasswordException("비밀번호는 대/소문자 포함, 숫자 포함, 5~15자여야 합니다");
         }
         
         // 이메일로 사용자 조회
-        User existingUser = userRepository.findByUserId(user.getUserId());
+        User existingUser = userDAO.findByUserId(user.getUserId());
         if (existingUser != null) {
             // 이미 등록된 사용자인 경우
             if ("ST02".equals(existingUser.getStatus())) {
@@ -38,21 +37,24 @@ public class UserService {
             }
         }
 
-        user.setStatus("ST01");
+        // 사용자가 명시적으로 상태를 설정하지 않은 경우만 기본값 설정
+        if (user.getStatus() == null) {
+            user.setStatus("ST00"); // 승인 대기 상태로 설정
+        }
         user.setRegisterBy(user.getUserId());
         user.setFirstLoginDate(new Date());
-        userRepository.save(user);
+        userDAO.save(user);
     }
 
 
-    public void updateUser(User user) {
-        userRepository.update(user);
+    public void modifyUser(User user) {
+        userDAO.modify(user);
     }
 
     public void changePassword(String userId, String oldPassword, String newPassword)
             throws UserNotFoundException, InvalidPasswordException, AuthenticationException {
         // 사용자 존재 여부 확인
-        User user = userRepository.findByUserId(userId);
+        User user = userDAO.findByUserId(userId);
         if (user == null) {
             throw new UserNotFoundException("사용자를 찾을 수 없습니다: " + userId);
         }
@@ -63,25 +65,25 @@ public class UserService {
         }
 
         // 새 비밀번호 형식 검증
-        if (!isValidPassword(newPassword)) {
+        if (isValidPassword(newPassword)) {
             throw new InvalidPasswordException("비밀번호는 대문자, 소문자, 숫자를 모두 포함하여 5~15자여야 합니다.");
         }
 
-        userRepository.update(user);
+        userDAO.modify(user);
     }
 
     public boolean requestWithdrawal(String userId) {
-        return userRepository.deleteUser(userId);
+        return userDAO.deleteUser(userId);
     }
 
 
     private boolean isValidPassword(String password) {
         // 대/소문자 포함, 숫자 포함, 5~15자 검증
-        return password != null &&
-                password.length() >= 5 && password.length() <= 15 &&
-                password.matches(".*[A-Z].*") && // 대문자 포함
-                password.matches(".*[a-z].*") && // 소문자 포함
-                password.matches(".*[0-9].*");   // 숫자 포함
+        return password == null ||
+                password.length() < 5 || password.length() > 15 ||
+                !password.matches(".*[A-Z].*") || // 대문자 포함
+                !password.matches(".*[a-z].*") || // 소문자 포함
+                !password.matches(".*[0-9].*");   // 숫자 포함
     }
     
     private boolean isValidEmail(String email) {
@@ -92,18 +94,18 @@ public class UserService {
     
     // 모든 사용자 조회
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userDAO.findAll();
     }
     
     // 이메일로 사용자 조회
     public User getUserByEmail(String email) {
-        return userRepository.findByUserId(email);
+        return userDAO.findByUserId(email);
     }
     
     // 사용자 권한 변경 (일반 사용자 -> 관리자, 관리자 -> 일반 사용자)
     public boolean changeUserRole(String email, String newUserType) {
         // 사용자 조회
-        User user = userRepository.findByUserId(email);
+        User user = userDAO.findByUserId(email);
         if (user == null) {
             return false;
         }
@@ -112,7 +114,7 @@ public class UserService {
         user.setUserType(newUserType);
         
         try {
-            userRepository.updateUserRole(user);
+            userDAO.modifyUserRole(user);
             return true;
         } catch (Exception e) {
             e.printStackTrace();

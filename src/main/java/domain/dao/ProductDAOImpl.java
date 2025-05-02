@@ -1,27 +1,29 @@
-package domain.repository;
+package domain.dao;
 
 import domain.model.Product;
+import util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductRepositoryImpl implements ProductRepository {
+public class ProductDAOImpl implements ProductDAO {
 
-    private Connection conn;
-
-    // 데이터베이스 연결을 위한 생성자
-    public ProductRepositoryImpl(Connection conn) {
-        this.conn = conn;
+    // Connection 필드 제거 및 생성자 수정
+    public ProductDAOImpl() {
+        // 빈 생성자
     }
 
     @Override
     public Product findByProductCode(String productCode) {
         Product product = null;
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "SELECT * FROM TB_PRODUCT WHERE no_product = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, productCode);
@@ -33,7 +35,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(rs, pstmt);
+            closeResources(rs, pstmt, conn);
         }
         return product;
     }
@@ -41,10 +43,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findByProductName(String productName) {
         List<Product> products = new ArrayList<>();
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "SELECT * FROM TB_PRODUCT WHERE nm_product LIKE ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, "%" + productName + "%");
@@ -57,7 +62,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(rs, pstmt);
+            closeResources(rs, pstmt, conn);
         }
         return products;
     }
@@ -65,10 +70,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findAll() {
         List<Product> products = new ArrayList<>();
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "SELECT * FROM TB_PRODUCT";
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
@@ -80,7 +88,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(rs, pstmt);
+            closeResources(rs, pstmt, conn);
         }
         return products;
     }
@@ -88,10 +96,13 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Override
     public List<Product> findAllOrderByPrice(boolean ascending) {
         List<Product> products = new ArrayList<>();
+        Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "SELECT * FROM TB_PRODUCT ORDER BY qt_sale_price " + (ascending ? "ASC" : "DESC");
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
@@ -103,19 +114,22 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(rs, pstmt);
+            closeResources(rs, pstmt, conn);
         }
         return products;
     }
 
     @Override
     public void save(Product product) {
+        Connection conn = null;
         PreparedStatement pstmt = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "INSERT INTO TB_PRODUCT (no_product, nm_product, nm_detail_explain, id_file, " +
                     "dt_start_date, dt_end_date, qt_customer_price, qt_sale_price, qt_stock, qt_delivery_fee, " +
-                    "no_register, da_first_date) VALUES ('P' || LPAD(PRODUCT_CODE_SEQ.NEXTVAL, 6, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "no_register, da_first_date) VALUES ('P' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 6, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, product.getProductName());
@@ -161,15 +175,18 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(null, pstmt);
+            closeResources(null, pstmt, conn);
         }
     }
 
     @Override
-    public void update(Product product) {
+    public void modify(Product product) {
+        Connection conn = null;
         PreparedStatement pstmt = null;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "UPDATE TB_PRODUCT SET nm_product = ?, nm_detail_explain = ?, id_file = ?, " +
                     "dt_start_date = ?, dt_end_date = ?, qt_customer_price = ?, qt_sale_price = ?, " +
                     "qt_stock = ?, qt_delivery_fee = ? WHERE no_product = ?";
@@ -207,16 +224,19 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(null, pstmt);
+            closeResources(null, pstmt, conn);
         }
     }
 
     @Override
     public boolean delete(String productCode) {
+        Connection conn = null;
         PreparedStatement pstmt = null;
         boolean success = false;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "DELETE FROM TB_PRODUCT WHERE no_product = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, productCode);
@@ -226,18 +246,21 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(null, pstmt);
+            closeResources(null, pstmt, conn);
         }
 
         return success;
     }
 
     @Override
-    public boolean updateStock(String productCode, int stock) {
+    public boolean modifyStock(String productCode, int stock) {
+        Connection conn = null;
         PreparedStatement pstmt = null;
         boolean success = false;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "UPDATE TB_PRODUCT SET qt_stock = ? WHERE no_product = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, stock);
@@ -248,18 +271,21 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(null, pstmt);
+            closeResources(null, pstmt, conn);
         }
 
         return success;
     }
 
     @Override
-    public boolean updateSaleStatus(String productCode, String startDate, String endDate) {
+    public boolean modifySaleStatus(String productCode, String startDate, String endDate) {
+        Connection conn = null;
         PreparedStatement pstmt = null;
         boolean success = false;
 
         try {
+            conn = DatabaseConnection.getConnection();
+            
             String sql = "UPDATE TB_PRODUCT SET dt_start_date = ?, dt_end_date = ? WHERE no_product = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, startDate);
@@ -271,7 +297,7 @@ public class ProductRepositoryImpl implements ProductRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeResources(null, pstmt);
+            closeResources(null, pstmt, conn);
         }
 
         return success;
@@ -310,10 +336,12 @@ public class ProductRepositoryImpl implements ProductRepository {
         return product;
     }
 
-    private void closeResources(ResultSet rs, PreparedStatement pstmt) {
+    // closeResources 메서드 수정 - Connection 반환 추가
+    private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection conn) {
         try {
             if (rs != null) rs.close();
             if (pstmt != null) pstmt.close();
+            if (conn != null) DatabaseConnection.closeConnection(conn); // 풀에 연결 반환
         } catch (SQLException e) {
             e.printStackTrace();
         }

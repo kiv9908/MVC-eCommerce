@@ -1,9 +1,9 @@
 package config;
 
-import domain.repository.ProductRepository;
-import domain.repository.ProductRepositoryImpl;
-import domain.repository.UserRepository;
-import domain.repository.UserRepositoryImpl;
+import domain.dao.ProductDAO;
+import domain.dao.ProductDAOImpl;
+import domain.dao.UserDAO;
+import domain.dao.UserDAOImpl;
 import lombok.Getter;
 import lombok.Setter;
 import service.AuthService;
@@ -11,16 +11,13 @@ import service.ProductService;
 import service.UserService;
 import util.DatabaseConnection;
 
-import java.sql.Connection;
-
 @Getter
 @Setter
 public class AppConfig {
     private static AppConfig instance;
 
-    private Connection conn;
-    private UserRepository userRepository;
-    private ProductRepository productRepository;
+    private UserDAO userDAO;
+    private ProductDAO productDAO;
     private UserService userService;
     private ProductService productService;
     private AuthService authService;
@@ -43,21 +40,18 @@ public class AppConfig {
      * 모든 컴포넌트 초기화 및 의존성 주입
      */
     private void initComponents() {
-        // 데이터베이스 연결
-        this.conn = DatabaseConnection.getConnection();
-
-        // 리포지토리 계층
-        this.userRepository = new UserRepositoryImpl(conn);
-        this.productRepository = new ProductRepositoryImpl(conn);
+        // 리포지토리 계층 - Connection 주입 없이 초기화
+        this.userDAO = new UserDAOImpl();
+        this.productDAO = new ProductDAOImpl();
 
         // 서비스 계층
-        this.userService = new UserService(userRepository);
-        this.authService = new AuthService(userRepository);
-        this.productService = new ProductService(productRepository);
-
+        this.userService = new UserService(userDAO);
+        this.authService = new AuthService(userDAO);
+        this.productService = new ProductService(productDAO);
     }
 
     public void closeResources() {
-        DatabaseConnection.closeConnection();
+        // 애플리케이션 종료 시 HikariCP 풀 종료
+        DatabaseConnection.closePool();
     }
 }

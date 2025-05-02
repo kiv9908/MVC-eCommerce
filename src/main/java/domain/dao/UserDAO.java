@@ -1,10 +1,10 @@
-package domain.repository;
+package domain.dao;
 
 import domain.model.User;
 
 import java.util.List;
 
-public interface UserRepository {
+public interface UserDAO {
     /**
      * 사용자 ID(이메일)로 사용자 조회
      * @param email 사용자 이메일
@@ -19,10 +19,10 @@ public interface UserRepository {
     void save(User user);
 
     /**
-     * 사용자 정보 업데이트
-     * @param user 업데이트할 사용자 객체
+     * 사용자 정보 수정
+     * @param user 수정할 사용자 객체
      */
-    void update(User user);
+    void modify(User user);
 
     /**
      * 모든 사용자 조회
@@ -41,5 +41,5 @@ public interface UserRepository {
      * 사용자 권한 변경
      * @param user 권한을 변경할 사용자 객체
      */
-    void updateUserRole(User user);
+    void modifyUserRole(User user);
 }

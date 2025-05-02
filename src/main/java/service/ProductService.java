@@ -1,7 +1,7 @@
 package service;
 
 import domain.model.Product;
-import domain.repository.ProductRepository;
+import domain.dao.ProductDAO;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -10,11 +10,11 @@ import java.util.Calendar;
 import java.util.List;
 
 public class ProductService {
-    private final ProductRepository productRepository;
+    private final ProductDAO productDAO;
 
     // 생성자 주입
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductService(ProductDAO productDAO) {
+        this.productDAO = productDAO;
     }
 
     // 상품 등록
@@ -30,44 +30,44 @@ public class ProductService {
         }
 
         // 필요한 비즈니스 검증 로직 추가
-        productRepository.save(product);
+        productDAO.save(product);
     }
 
     // 상품 조회
     public Product getProductByCode(String productCode) {
-        return productRepository.findByProductCode(productCode);
+        return productDAO.findByProductCode(productCode);
     }
 
     // 가격 순 정렬된 상품 목록 조회
     public List<Product> getProductsSortedByPrice(boolean ascending) {
-        return productRepository.findAllOrderByPrice(ascending);
+        return productDAO.findAllOrderByPrice(ascending);
     }
 
     // 상품 수정
-    public void updateProduct(Product product) {
-        productRepository.update(product);
+    public void modifyProduct(Product product) {
+        productDAO.modify(product);
     }
 
     // 상품 삭제
     public boolean deleteProduct(String productCode) {
-        return productRepository.delete(productCode);
+        return productDAO.delete(productCode);
     }
 
-    // 재고 업데이트
-    public boolean updateProductStock(String productCode, int stock) {
+    // 재고 수정
+    public boolean modifyProductStock(String productCode, int stock) {
         if (stock < 0) {
             throw new IllegalArgumentException("재고는 0 이상이어야 합니다.");
         }
-        return productRepository.updateStock(productCode, stock);
+        return productDAO.modifyStock(productCode, stock);
     }
 
     // 판매 상태 관리
-    public boolean updateProductSaleStatus(String productCode, String startDate, String endDate) {
+    public boolean modifyProductSaleStatus(String productCode, String startDate, String endDate) {
         // 날짜 형식 검증 로직 (YYYYMMDD 형식)
         if (!isValidDateFormat(startDate) || !isValidDateFormat(endDate)) {
             throw new IllegalArgumentException("날짜는 YYYYMMDD 형식이어야 합니다.");
         }
-        return productRepository.updateSaleStatus(productCode, startDate, endDate);
+        return productDAO.modifySaleStatus(productCode, startDate, endDate);
     }
 
     // 날짜 형식 검증 메서드 (간단한 구현)
@@ -91,7 +91,7 @@ public class ProductService {
 
     // 품절 처리
     public boolean markProductAsOutOfStock(String productCode) {
-        return productRepository.updateStock(productCode, 0);
+        return productDAO.modifyStock(productCode, 0);
     }
 
     // 판매 중지 처리
@@ -104,7 +104,7 @@ public class ProductService {
         String yesterday = dateFormat.format(calendar.getTime());
         
         // 판매 기간을 어제까지로 설정 (판매 종료)
-        return productRepository.updateSaleStatus(productCode, "20000101", yesterday);
+        return productDAO.modifySaleStatus(productCode, "20000101", yesterday);
     }
     
     // 상품명으로 상품 검색
@@ -113,7 +113,7 @@ public class ProductService {
             throw new IllegalArgumentException("검색어를 입력해주세요.");
         }
         
-        return productRepository.findByProductName(productName);
+        return productDAO.findByProductName(productName);
     }
 
 }

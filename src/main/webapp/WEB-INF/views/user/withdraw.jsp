@@ -6,13 +6,10 @@
     <title>회원 탈퇴</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/signup.css"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/nav.css"/>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/nav.css"/>
 </head>
 <body class="d-flex align-items-center py-4 bg-body-tertiary">
 <!-- 네비게이션 바 포함 -->

@@ -1,18 +1,14 @@
 package service;
 
 import domain.model.User;
-import domain.repository.UserRepository;
-import domain.repository.UserRepositoryImpl;
-import util.DatabaseConnection;
-
-import java.sql.Connection;
+import domain.dao.UserDAO;
 
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final UserDAO userDAO;
     
-    public AuthService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AuthService(UserDAO userDAO) {
+        this.userDAO = userDAO;
     }
     
     /**
@@ -24,7 +20,7 @@ public class AuthService {
      */
     public User login(String email, String password) throws Exception {
         // 이메일로 사용자 조회
-        User user = userRepository.findByUserId(email);
+        User user = userDAO.findByUserId(email);
         
         // 사용자가 존재하지 않는 경우
         if (user == null) {
@@ -34,6 +30,11 @@ public class AuthService {
         // 탈퇴한 회원인 경우
         if ("ST02".equals(user.getStatus())) {
             throw new Exception("탈퇴한 회원입니다: " + email);
+        }
+        
+        // 승인 대기 중인 회원인 경우
+        if ("ST00".equals(user.getStatus())) {
+            throw new Exception("아직 승인되지 않은 회원입니다. 관리자 승인 후 로그인이 가능합니다.");
         }
         
         // 비밀번호 검증

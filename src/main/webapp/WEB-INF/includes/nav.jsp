@@ -13,8 +13,13 @@
                 </li>
                 <% if(session.getAttribute("isLoggedIn") != null && (Boolean)session.getAttribute("isLoggedIn")) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/update">내 정보</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/user/modify">내 정보</a>
                     </li>
+                    <% if(session.getAttribute("user") != null && ((domain.model.User)session.getAttribute("user")).getUserType().equals("20")) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="${pageContext.request.contextPath}/admin/modify">관리자 페이지</a>
+                    </li>
+                    <% } %>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/user/logout">로그아웃</a>
                     </li>
@@ -23,7 +28,7 @@
                         <a class="nav-link" href="${pageContext.request.contextPath}/user/login">로그인</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/signup">회원가입</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/user/join">회원가입</a>
                     </li>
                 <% } %>
             </ul>

@@ -5,18 +5,12 @@
         <title>로그인 - 쇼핑몰</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="UTF-8">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
-        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-        <meta http-equiv="Pragma" content="no-cache">
-        <meta http-equiv="Expires" content="0">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/login.css"/>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/nav.css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/login.css"/>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/nav.css"/>
     </head>
-    <body class="d-flex align-items-center justify-content-center py-4">
+    <body class="login-body d-flex align-items-center justify-content-center py-4">
         <!-- 네비게이션 바 포함 -->
         <%@ include file="/WEB-INF/includes/nav.jsp" %>
         <main class="form-signin w-100 m-auto">
@@ -57,7 +51,7 @@
                 <button class="btn btn-primary w-100 py-2" type="submit">로그인</button>
                 
                 <div class="mt-4 text-center">
-                    <p>계정이 없으신가요? <a href="${pageContext.request.contextPath}/user/signup">회원가입</a></p>
+                    <p>계정이 없으신가요? <a href="${pageContext.request.contextPath}/user/join">회원가입</a></p>
                 </div>
                 
                 <div class="mt-4 text-center">

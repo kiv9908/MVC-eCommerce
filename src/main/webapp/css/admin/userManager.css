@@ -1,0 +1,78 @@
+/* 사이드바 스타일 */
+.sidebar {
+  background-color: #343a40;
+  color: white;
+  min-height: 100vh;
+}
+
+.sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.sidebar .nav-link:hover {
+  color: #fff;
+}
+
+.sidebar .nav-link.active {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 사용자 상태 배지 스타일 */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-request {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-inactive {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* 테이블 스타일 */
+.table th {
+  font-weight: 500;
+  border-top: none;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+/* 모달 스타일 */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* 정보 수정 폼 스타일 */
+.edit-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.edit-form label {
+  font-weight: 500;
+}
+
+/* 관리 버튼 스타일 */
+.btn-manage {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}

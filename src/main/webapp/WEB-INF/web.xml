@@ -31,7 +31,18 @@
         <filter-name>CharacterEncodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    
-    <!-- 서블릿 및 필터 설정은 추가적으로 여기에 작성됩니다 -->
+
+    <filter>
+        <filter-name>AdminCheckFilter</filter-name>
+        <filter-class>filter.AdminCheckFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AdminCheckFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+        <url-pattern>/userManage.jsp</url-pattern>
+        <!-- 추가 보호할 URL 패턴들 -->
+    </filter-mapping>
+
+
     
 </web-app>

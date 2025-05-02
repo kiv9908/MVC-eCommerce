@@ -1,10 +1,10 @@
-package domain.repository;
+package domain.dao;
 
 import domain.model.Product;
 
 import java.util.List;
 
-public interface ProductRepository {
+public interface ProductDAO {
     // 상품 코드로 상품 조회
     Product findByProductCode(String productCode);
 
@@ -21,15 +21,15 @@ public interface ProductRepository {
     void save(Product product);
 
     // 상품 수정
-    void update(Product product);
+    void modify(Product product);
 
     // 상품 삭제
     boolean delete(String productCode);
 
-    // 재고 업데이트
-    boolean updateStock(String productCode, int stock);
+    // 재고 수정
+    boolean modifyStock(String productCode, int stock);
 
     // 판매 상태 관리 (판매 중지, 품절 처리)
-    boolean updateSaleStatus(String productCode, String startDate, String endDate);
+    boolean modifySaleStatus(String productCode, String startDate, String endDate);
 
 }
