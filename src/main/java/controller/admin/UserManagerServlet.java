@@ -2,6 +2,7 @@ package controller.admin;
 
 import config.AppConfig;
 import domain.model.User;
+import lombok.extern.slf4j.Slf4j;
 import service.UserService;
 
 import javax.servlet.RequestDispatcher;
@@ -11,16 +12,12 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 @WebServlet(name = "AdminModifyUserServlet", urlPatterns = "/admin/modify")
-public class userManagerServlet extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(userManagerServlet.class);
+public class UserManagerServlet extends HttpServlet {
     private UserService userService;
 
     @Override
@@ -44,23 +41,6 @@ public class userManagerServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
-
-//        // 세션 체크 및 권한 확인
-//        HttpSession session = request.getSession(false);
-//        if (session == null || session.getAttribute("user") == null) {
-//            response.setContentType("application/json");
-//            response.getWriter().write("{\"success\": false, \"message\": \"로그인이 필요합니다.\"}");
-//            return;
-//        }
-//
-//        User adminUser = (User) session.getAttribute("user");
-//
-//        // 관리자 권한 체크 (20: 관리자)
-//        if (!"20".equals(adminUser.getUserType())) {
-//            response.setContentType("application/json");
-//            response.getWriter().write("{\"success\": false, \"message\": \"관리자 권한이 필요합니다.\"}");
-//            return;
-//        }
 
         // 파라미터 추출
         String userId = request.getParameter("userId");
@@ -154,7 +134,7 @@ public class userManagerServlet extends HttpServlet {
                     break;
             }
         } catch (Exception e) {
-            logger.error("회원 정보 수정 중 오류 발생: {}", e.getMessage(), e);
+            log.error("회원 정보 수정 중 오류 발생: {}", e.getMessage(), e);
             message = "처리 중 오류가 발생했습니다: " + e.getMessage();
         }
 
