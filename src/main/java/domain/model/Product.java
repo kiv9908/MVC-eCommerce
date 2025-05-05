@@ -1,6 +1,15 @@
 package domain.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.Date;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class Product {
     private String productCode;     // no_product - VARCHAR2(30), PK
@@ -16,104 +25,6 @@ public class Product {
     private String registerId;      // no_register - VARCHAR2(30)
     private Date firstDate;         // da_first_date - DATE
 
-    public Product() {
-    }
-
-    public String getProductCode() {
-        return productCode;
-    }
-
-    public void setProductCode(String productCode) {
-        this.productCode = productCode;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public String getDetailExplain() {
-        return detailExplain;
-    }
-
-    public void setDetailExplain(String detailExplain) {
-        this.detailExplain = detailExplain;
-    }
-
-    public String getFileId() {
-        return fileId;
-    }
-
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
-
-    public Integer getCustomerPrice() {
-        return customerPrice;
-    }
-
-    public void setCustomerPrice(Integer customerPrice) {
-        this.customerPrice = customerPrice;
-    }
-
-    public Integer getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(Integer salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public Integer getStock() {
-        return stock;
-    }
-
-    public void setStock(Integer stock) {
-        this.stock = stock;
-    }
-
-    public Integer getDeliveryFee() {
-        return deliveryFee;
-    }
-
-    public void setDeliveryFee(Integer deliveryFee) {
-        this.deliveryFee = deliveryFee;
-    }
-
-    public String getRegisterId() {
-        return registerId;
-    }
-
-    public void setRegisterId(String registerId) {
-        this.registerId = registerId;
-    }
-
-    public Date getFirstDate() {
-        return firstDate;
-    }
-
-    public void setFirstDate(Date firstDate) {
-        this.firstDate = firstDate;
-    }
 
     /**
      * 상품의 상태를 판단하는 메서드

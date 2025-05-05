@@ -11,7 +11,7 @@
     <hr />
     <ul class="nav nav-pills flex-column mb-auto">
       <li class="nav-item">
-        <a href="" class="nav-link active">
+        <a href="${pageContext.request.contextPath}/admin/modify" class="nav-link active">
           <i class="fas fa-users me-2"></i>
           사용자 관리
         </a>
@@ -20,6 +20,18 @@
         <a href="#" class="nav-link text-white">
           <i class="fas fa-box me-2"></i>
           상품 관리
+        </a>
+      </li>
+      <li>
+        <a href="${pageContext.request.contextPath}/admin/category" class="nav-link text-white">
+          <i class="fas fa-box me-2"></i>
+          카테고리 관리
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-link text-white">
+          <i class="fas fa-box me-2"></i>
+          카테고리 매핑 관리
         </a>
       </li>
       <li>

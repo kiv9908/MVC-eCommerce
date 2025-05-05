@@ -116,4 +116,9 @@ public class ProductService {
         return productDAO.findByProductName(productName);
     }
 
+    // 모든 상품 목록 조회
+    public List<Product> findAll() {
+        return productDAO.findAll();
+    }
+
 }
