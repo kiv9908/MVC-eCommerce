@@ -17,7 +17,7 @@ import java.util.List;
 
 @Slf4j
 @WebServlet(name = "AdminModifyUserServlet", urlPatterns = "/admin/modify")
-public class UserManagerServlet extends HttpServlet {
+public class UserManageServlet extends HttpServlet {
     private UserService userService;
 
     @Override
@@ -32,7 +32,7 @@ public class UserManagerServlet extends HttpServlet {
         List<User> users = userService.getAllUsers();
         request.setAttribute("users", users);
 
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/admin/userManage.jsp");
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/admin/user/userManage.jsp");
         dispatcher.forward(request, response);
     }
 

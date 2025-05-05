@@ -9,9 +9,8 @@ import java.util.List;
 
 public class ProductDAOImpl implements ProductDAO {
 
-    // Connection 필드 제거 및 생성자 수정
     public ProductDAOImpl() {
-        // 빈 생성자
+
     }
 
     @Override
@@ -129,8 +128,7 @@ public class ProductDAOImpl implements ProductDAO {
             
             String sql = "INSERT INTO TB_PRODUCT (no_product, nm_product, nm_detail_explain, id_file, " +
                     "dt_start_date, dt_end_date, qt_customer_price, qt_sale_price, qt_stock, qt_delivery_fee, " +
-                    "no_register, da_first_date) VALUES ('P' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 6, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+                    "no_register, da_first_date) VALUES ('PT' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 7, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, product.getProductName());
             pstmt.setString(2, product.getDetailExplain());
@@ -266,9 +264,15 @@ public class ProductDAOImpl implements ProductDAO {
             pstmt.setInt(1, stock);
             pstmt.setString(2, productCode);
 
+            System.out.println("===> 재고 변경 SQL: " + sql);
+            System.out.println("===> 재고 변경 파라미터: stock=" + stock + ", productCode=" + productCode);
+
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
+            
+            System.out.println("===> 재고 변경 결과: " + (success ? "성공" : "실패") + ", 영향받은 행: " + affectedRows);
         } catch (SQLException e) {
+            System.out.println("===> 재고 변경 오류: " + e.getMessage());
             e.printStackTrace();
         } finally {
             closeResources(null, pstmt, conn);
@@ -334,6 +338,42 @@ public class ProductDAOImpl implements ProductDAO {
         product.setFirstDate(rs.getDate("DA_FIRST_DATE"));
 
         return product;
+    }
+    
+    /**
+     * 상품 상태 계산 (재고에 따른 상태)
+     */
+    private String calculateStatus(Product product) {
+        // 재고 확인
+        if (product.getStock() != null && product.getStock() <= 0) {
+            return "품절";
+        }
+        
+        // 판매 기간에 따른 상태 확인
+        String currentDate = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        
+        if (product.getStartDate() != null && product.getEndDate() != null) {
+            // 판매 종료일이 현재 날짜보다 과거인 경우 - 판매 중지
+            if (product.getEndDate().compareTo(currentDate) < 0) {
+                return "판매중지";
+            }
+        }
+        
+        // 위 조건 모두 해당하지 않으면 판매중
+        return "판매중";
+    }
+    
+    /**
+     * 판매 기간에 따른 상태 계산
+     */
+    private String calculateStatusFromDates(String startDate, String endDate) {
+        String currentDate = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+        
+        if (endDate != null && endDate.compareTo(currentDate) < 0) {
+            return "판매중지";
+        }
+        
+        return "판매중";
     }
 
     // closeResources 메서드 수정 - Connection 반환 추가
