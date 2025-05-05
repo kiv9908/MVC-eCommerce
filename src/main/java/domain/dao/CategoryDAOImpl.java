@@ -13,39 +13,36 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 @Slf4j
 public class CategoryDAOImpl implements CategoryDAO {
-
-    private Connection getConnection() throws SQLException {
-        return DatabaseConnection.getConnection();
-    }
+    
     
     @Override
     public List<Category> findAll() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE yn_delete = 'N' ORDER BY cn_level, cn_order";
         
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
-            
+
             while (rs.next()) {
                 categories.add(mapResultSetToCategory(rs));
             }
         } catch (SQLException e) {
             log.error("카테고리 전체 조회 중 오류 발생", e);
         }
-        
+
         return categories;
     }
-    
+
     @Override
     public Category findById(int nbCategory) {
         String sql = "SELECT * FROM tb_category WHERE nb_category = ? AND yn_delete = 'N'";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, nbCategory);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToCategory(rs);
@@ -54,20 +51,20 @@ public class CategoryDAOImpl implements CategoryDAO {
         } catch (SQLException e) {
             log.error("카테고리 ID 조회 중 오류 발생: " + nbCategory, e);
         }
-        
+
         return null;
     }
-    
+
     @Override
     public List<Category> findByParentId(int nbParentCategory) {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE nb_parent_category = ? AND yn_delete = 'N' ORDER BY cn_order";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, nbParentCategory);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     categories.add(mapResultSetToCategory(rs));
@@ -77,20 +74,20 @@ public class CategoryDAOImpl implements CategoryDAO {
             log.error("상위 카테고리로 하위 카테고리 조회 중 오류 발생: " + nbParentCategory, e);
 
         }
-        
+
         return categories;
     }
-    
+
     @Override
     public List<Category> findByLevel(int cnLevel) {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE cn_level = ? AND yn_delete = 'N' ORDER BY cn_order";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, cnLevel);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     categories.add(mapResultSetToCategory(rs));
@@ -99,157 +96,164 @@ public class CategoryDAOImpl implements CategoryDAO {
         } catch (SQLException e) {
             log.error("레벨별 카테고리 조회 중 오류 발생: " + cnLevel, e);
         }
-        
+
         return categories;
     }
-    
+
     @Override
     public int save(Category category) {
         String sql = "INSERT INTO tb_category (nb_category, nb_parent_category, nm_category, nm_full_category, nm_explain, cn_level, cn_order, yn_use, yn_delete, no_register, da_first_date) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'N', ?, SYSDATE)";
-        
-        try (Connection conn = getConnection();
+                     "VALUES (SEQ_TB_CATEGORY.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, 'N', ?, SYSDATE)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
-            pstmt.setInt(1, category.getNbCategory());
-            
+
+            // nb_parent_category
             if (category.getNbParentCategory() != null) {
-                pstmt.setInt(2, category.getNbParentCategory());
+                pstmt.setInt(1, category.getNbParentCategory());
             } else {
-                pstmt.setNull(2, Types.INTEGER);
+                pstmt.setNull(1, Types.INTEGER);
             }
-            
-            pstmt.setString(3, category.getNmCategory());
-            pstmt.setString(4, category.getNmFullCategory());
-            pstmt.setString(5, category.getNmExplain());
-            
+
+            // nm_category
+            pstmt.setString(2, category.getNmCategory());
+
+            // nm_full_category
+            pstmt.setString(3, category.getNmFullCategory());
+
+            // nm_explain
+            pstmt.setString(4, category.getNmExplain());
+
+            // cn_level
             if (category.getCnLevel() != null) {
-                pstmt.setInt(6, category.getCnLevel());
+                pstmt.setInt(5, category.getCnLevel());
+            } else {
+                pstmt.setNull(5, Types.INTEGER);
+            }
+
+            // cn_order
+            if (category.getCnOrder() != null) {
+                pstmt.setInt(6, category.getCnOrder());
             } else {
                 pstmt.setNull(6, Types.INTEGER);
             }
-            
-            if (category.getCnOrder() != null) {
-                pstmt.setInt(7, category.getCnOrder());
-            } else {
-                pstmt.setNull(7, Types.INTEGER);
-            }
-            
-            pstmt.setString(8, category.getYnUse());
-            pstmt.setString(9, category.getNoRegister());
-            
+
+            // yn_use
+            pstmt.setString(7, category.getYnUse());
+
+            // no_register
+            pstmt.setString(8, category.getNoRegister());
+
             return pstmt.executeUpdate();
-            
+
         } catch (SQLException e) {
             log.error("카테고리 저장 중 오류 발생", e);
-
+            throw new RuntimeException(e);
         }
-        
-        return 0;
     }
-    
+
     @Override
     public boolean update(Category category) {
         String sql = "UPDATE tb_category SET nm_category = ?, nm_full_category = ?, nm_explain = ?, " +
                      "cn_level = ?, cn_order = ?, yn_use = ? WHERE nb_category = ?";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, category.getNmCategory());
             pstmt.setString(2, category.getNmFullCategory());
             pstmt.setString(3, category.getNmExplain());
-            
+
             if (category.getCnLevel() != null) {
                 pstmt.setInt(4, category.getCnLevel());
             } else {
                 pstmt.setNull(4, Types.INTEGER);
             }
-            
+
             if (category.getCnOrder() != null) {
                 pstmt.setInt(5, category.getCnOrder());
             } else {
                 pstmt.setNull(5, Types.INTEGER);
             }
-            
+
             pstmt.setString(6, category.getYnUse());
             pstmt.setInt(7, category.getNbCategory());
-            
+
             return pstmt.executeUpdate() > 0;
-            
+
         } catch (SQLException e) {
             log.error("카테고리 수정 중 오류 발생: {}", category.getNbCategory(), e);
         }
-        
+
         return false;
     }
-    
+
     @Override
     public boolean delete(int nbCategory) {
         String sql = "UPDATE tb_category SET yn_delete = 'Y' WHERE nb_category = ?";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, nbCategory);
-            
+
             return pstmt.executeUpdate() > 0;
-            
+
         } catch (SQLException e) {
             log.error("카테고리 삭제 중 오류 발생: {}", nbCategory, e);
         }
-        
+
         return false;
     }
-    
+
     @Override
     public boolean updateUseStatus(int nbCategory, String ynUse) {
         String sql = "UPDATE tb_category SET yn_use = ? WHERE nb_category = ?";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, ynUse);
             pstmt.setInt(2, nbCategory);
-            
+
             return pstmt.executeUpdate() > 0;
-            
+
         } catch (SQLException e) {
             log.error("카테고리 사용상태 변경 중 오류 발생: {}", nbCategory, e);
         }
-        
+
         return false;
     }
-    
+
     @Override
     public boolean updateOrder(int nbCategory, int cnOrder) {
         String sql = "UPDATE tb_category SET cn_order = ? WHERE nb_category = ?";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setInt(1, cnOrder);
             pstmt.setInt(2, nbCategory);
-            
+
             return pstmt.executeUpdate() > 0;
-            
+
         } catch (SQLException e) {
             log.error("카테고리 순서 변경 중 오류 발생: {}", nbCategory, e);
         }
-        
+
         return false;
     }
-    
+
     @Override
     public List<Category> searchByName(String nmCategory) {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE nm_category LIKE ? AND yn_delete = 'N' ORDER BY cn_level, cn_order";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, "%" + nmCategory + "%");
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     categories.add(mapResultSetToCategory(rs));
@@ -258,16 +262,16 @@ public class CategoryDAOImpl implements CategoryDAO {
         } catch (SQLException e) {
             log.error("카테고리명 검색 중 오류 발생: {}", nmCategory, e);
         }
-        
+
         return categories;
     }
-    
+
     @Override
     public List<Category> findAllActive() {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE yn_use = 'Y' AND yn_delete = 'N' ORDER BY cn_level, cn_order";
-        
-        try (Connection conn = getConnection();
+
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             

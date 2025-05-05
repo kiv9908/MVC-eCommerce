@@ -14,7 +14,6 @@ public class UserDAOImpl implements UserDAO {
 
     // Connection 필드 제거 및 생성자 수정
     public UserDAOImpl() {
-        // 빈 생성자
     }
 
     @Override

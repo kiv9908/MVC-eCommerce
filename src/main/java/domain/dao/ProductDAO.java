@@ -29,7 +29,7 @@ public interface ProductDAO {
     // 재고 수정
     boolean modifyStock(String productCode, int stock);
 
-    // 판매 상태 관리 (판매 중지, 품절 처리)
+    // 판매 상태 관리 (판매 기간에 따른 상태 계산)
     boolean modifySaleStatus(String productCode, String startDate, String endDate);
 
 }

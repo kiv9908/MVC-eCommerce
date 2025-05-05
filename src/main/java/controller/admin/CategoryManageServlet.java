@@ -2,7 +2,9 @@ package controller.admin;
 
 import domain.dao.CategoryDAO;
 import domain.dao.CategoryDAOImpl;
+import domain.dto.CategoryDTO;
 import domain.model.Category;
+import domain.model.User;
 import lombok.extern.slf4j.Slf4j;
 import service.CategoryService;
 
@@ -13,7 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 @Slf4j
 @WebServlet("/admin/category/*")
 public class CategoryManageServlet extends HttpServlet {
@@ -35,8 +38,8 @@ public class CategoryManageServlet extends HttpServlet {
             // 카테고리 목록 페이지
             listCategories(request, response);
         } else if ("/create".equals(pathInfo)) {
-            // 카테고리 생성 페이지
-            showCreateForm(request, response);
+            // 카테고리 생성 페이지 - 편집 페이지 재사용
+            showEditForm(request, response);
         } else if (pathInfo.startsWith("/edit/")) {
             // 카테고리 수정 페이지
             showEditForm(request, response);
@@ -72,20 +75,20 @@ public class CategoryManageServlet extends HttpServlet {
     // 카테고리 목록 표시
     private void listCategories(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // 계층형 구조로 카테고리 조회
-            List<Category> categories = categoryService.getAllCategories();
-            request.setAttribute("categories", categories);
+            // 계층형 구조로 카테고리 조회 (DTO 사용)
+            List<CategoryDTO> categoryDTOs = categoryService.getAllCategoryDTOs();
+            request.setAttribute("categories", categoryDTOs);
             
             // (선택) 검색 기능이 있는 경우
             String searchKeyword = request.getParameter("keyword");
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                List<Category> searchResults = categoryService.searchCategories(searchKeyword);
+                List<CategoryDTO> searchResults = categoryService.searchCategoryDTOs(searchKeyword);
                 request.setAttribute("searchResults", searchResults);
                 request.setAttribute("searchKeyword", searchKeyword);
             }
             
             // 카테고리 목록 페이지로 포워딩
-            request.getRequestDispatcher("/WEB-INF/views/admin/categoryManage.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryList.jsp").forward(request, response);
         } catch (Exception e) {
             log.info("카테고리 목록 조회 중 오류 발생: {}", e.getMessage());
             request.setAttribute("errorMessage", "카테고리 목록을 불러오는 중 오류가 발생했습니다.");
@@ -93,53 +96,93 @@ public class CategoryManageServlet extends HttpServlet {
         }
     }
     
-    // 카테고리 생성 폼 표시
-    private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    // 카테고리 생성 폼 표시 메소드는 showEditForm으로 통합되었습니다.
+    
+    // 카테고리 수정 또는 생성 폼 표시
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // 상위 카테고리 선택을 위한 카테고리 목록 조회
-            List<Category> parentCategories = categoryService.getAllCategories();
-            request.setAttribute("parentCategories", parentCategories);
+            String pathInfo = request.getPathInfo();
+            CategoryDTO categoryDTO = null;
+            List<CategoryDTO> parentCategoryDTOs = null;
             
-            // 카테고리 생성 페이지로 포워딩
-            request.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(request, response);
+            if ("/create".equals(pathInfo)) {
+                // 새 카테고리 생성인 경우, 빈 DTO 생성
+                categoryDTO = new CategoryDTO();
+                // 상위 카테고리 목록 가져오기
+                parentCategoryDTOs = categoryService.getAllCategoryDTOs();
+            } else {
+                // URL에서 카테고리 ID 추출
+                String categoryIdStr = pathInfo.substring("/edit/".length());
+                int categoryId = Integer.parseInt(categoryIdStr);
+                
+                // 수정할 카테고리 정보 조회 (DTO 사용)
+                categoryDTO = categoryService.getCategoryDTOById(categoryId);
+                if (categoryDTO == null) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "카테고리를 찾을 수 없습니다.");
+                    return;
+                }
+                
+                // 상위 카테고리 선택을 위한 카테고리 목록 조회 (자기 자신은 제외)
+                parentCategoryDTOs = categoryService.getAllCategoryDTOs().stream()
+                        .filter(dto -> !dto.getId().equals(categoryId))
+                        .collect(Collectors.toList());
+            }
+            
+            request.setAttribute("category", categoryDTO);
+            request.setAttribute("parentCategories", parentCategoryDTOs);
+            
+            // 카테고리 수정 페이지로 포워딩
+            request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 카테고리 ID 형식입니다.");
         } catch (Exception e) {
-            log.info("카테고리 생성 폼 표시 중 오류 발생: {}", e.getMessage());
-            request.setAttribute("errorMessage", "카테고리 생성 폼을 불러오는 중 오류가 발생했습니다.");
+            log.info("카테고리 폼 표시 중 오류 발생: {}", e.getMessage());
+            request.setAttribute("errorMessage", "카테고리 폼을 불러오는 중 오류가 발생했습니다.");
             request.getRequestDispatcher("/WEB-INF/views/common/error.jsp").forward(request, response);
         }
     }
     
-    // 카테고리 수정 폼 표시
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            // URL에서 카테고리 ID 추출
-            String pathInfo = request.getPathInfo();
-            String categoryIdStr = pathInfo.substring("/edit/".length());
-            int categoryId = Integer.parseInt(categoryIdStr);
-            
-            // 수정할 카테고리 정보 조회
-            Category category = categoryService.getCategoryById(categoryId);
-            if (category == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "카테고리를 찾을 수 없습니다.");
-                return;
-            }
-            
-            // 상위 카테고리 선택을 위한 카테고리 목록 조회 (자기 자신은 제외)
-            List<Category> parentCategories = categoryService.getAllCategories();
-            parentCategories.removeIf(c -> c.getNbCategory() == categoryId);
-            
-            request.setAttribute("category", category);
-            request.setAttribute("parentCategories", parentCategories);
-            
-            // 카테고리 수정 페이지로 포워딩
-            request.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(request, response);
-        } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 카테고리 ID 형식입니다.");
-        } catch (Exception e) {
-            log.info("카테고리 수정 폼 표시 중 오류 발생: {}", e.getMessage());
-            request.setAttribute("errorMessage", "카테고리 수정 폼을 불러오는 중 오류가 발생했습니다.");
-            request.getRequestDispatcher("/WEB-INF/views/common/error.jsp").forward(request, response);
+    // 폼 데이터로부터 CategoryDTO 생성
+    private CategoryDTO parseCategoryDTOFromRequest(HttpServletRequest request) {
+        CategoryDTO dto = new CategoryDTO();
+        
+        // categoryId 파라미터가 있는 경우 (수정 시)
+        String categoryIdStr = request.getParameter("categoryId");
+        if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+            dto.setId(Integer.parseInt(categoryIdStr));
         }
+        
+        // 이름, 전체 이름, 설명
+        dto.setName(request.getParameter("name"));
+        dto.setFullName(request.getParameter("fullName"));
+        dto.setDescription(request.getParameter("description"));
+        
+        // 상위 카테고리
+        String parentIdStr = request.getParameter("parentId");
+        if (parentIdStr != null && !parentIdStr.isEmpty()) {
+            dto.setParentId(Integer.parseInt(parentIdStr));
+        }
+        
+        // 순서
+        String orderStr = request.getParameter("order");
+        if (orderStr != null && !orderStr.isEmpty()) {
+            dto.setOrder(Integer.parseInt(orderStr));
+        }
+        
+        // 사용 여부
+        String useYn = request.getParameter("useYn");
+        dto.setUseYn(useYn != null ? useYn : "N");
+        
+        // 등록자 ID 설정
+        String userId = null;
+        if (request.getSession().getAttribute("user") != null) {
+            userId = ((User) request.getSession().getAttribute("user")).getUserId();
+        } else {
+            userId = "admin"; // 기본값
+        }
+        dto.setRegisterId(userId);
+        
+        return dto;
     }
     
     // 카테고리 생성 처리
@@ -147,51 +190,31 @@ public class CategoryManageServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         
         try {
-            // 폼 데이터 가져오기
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String parentIdStr = request.getParameter("parentId");
-            String orderStr = request.getParameter("order");
-            String useYn = request.getParameter("useYn");
+            // 폼 데이터로부터 DTO 생성
+            CategoryDTO categoryDTO = parseCategoryDTOFromRequest(request);
             
-            // 세션에서 사용자 ID 가져오기
-            String userId = null;
-            if (request.getSession().getAttribute("user") != null) {
-                userId = ((domain.model.User) request.getSession().getAttribute("user")).getUserId();
-            } else {
-                userId = "admin"; // 기본값
+            // DTO 유효성 검증
+            if (!categoryDTO.isValid()) {
+                request.setAttribute("errorMessage", "카테고리명은 필수 입력 항목입니다.");
+                request.setAttribute("category", categoryDTO);
+                request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
+                return;
             }
-            
-            // 카테고리 객체 생성
-            Category category = new Category();
-            category.setNmCategory(name);
-            category.setNmExplain(description);
-            
-            if (parentIdStr != null && !parentIdStr.isEmpty()) {
-                category.setNbParentCategory(Integer.parseInt(parentIdStr));
-            }
-            
-            if (orderStr != null && !orderStr.isEmpty()) {
-                category.setCnOrder(Integer.parseInt(orderStr));
-            }
-            
-            category.setYnUse(useYn != null ? useYn : "Y");
-            category.setNoRegister(userId);
             
             // 카테고리 저장
-            boolean success = categoryService.createCategory(category);
+            boolean success = categoryService.createCategory(categoryDTO);
             
             if (success) {
                 response.sendRedirect(request.getContextPath() + "/admin/category/list?success=create");
             } else {
                 request.setAttribute("errorMessage", "카테고리 생성에 실패했습니다.");
-                request.setAttribute("category", category);
-                request.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(request, response);
+                request.setAttribute("category", categoryDTO);
+                request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
             }
         } catch (Exception e) {
             log.info("카테고리 생성 중 오류 발생: {}", e.getMessage());
             request.setAttribute("errorMessage", "카테고리 생성 중 오류가 발생했습니다: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/admin/category/create.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
         }
     }
     
@@ -200,53 +223,33 @@ public class CategoryManageServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         
         try {
-            // 폼 데이터 가져오기
-            int categoryId = Integer.parseInt(request.getParameter("categoryId"));
-            String name = request.getParameter("name");
-            String description = request.getParameter("description");
-            String parentIdStr = request.getParameter("parentId");
-            String orderStr = request.getParameter("order");
-            String useYn = request.getParameter("useYn");
+            // 폼 데이터로부터 DTO 생성
+            CategoryDTO categoryDTO = parseCategoryDTOFromRequest(request);
             
-            // 기존 카테고리 정보 조회
-            Category category = categoryService.getCategoryById(categoryId);
-            if (category == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "카테고리를 찾을 수 없습니다.");
+            // DTO 유효성 검증
+            if (!categoryDTO.isValid()) {
+                request.setAttribute("errorMessage", "카테고리명은 필수 입력 항목입니다.");
+                request.setAttribute("category", categoryDTO);
+                request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
                 return;
             }
             
-            // 카테고리 정보 업데이트
-            category.setNmCategory(name);
-            category.setNmExplain(description);
-            
-            if (parentIdStr != null && !parentIdStr.isEmpty()) {
-                category.setNbParentCategory(Integer.parseInt(parentIdStr));
-            } else {
-                category.setNbParentCategory(null);
-            }
-            
-            if (orderStr != null && !orderStr.isEmpty()) {
-                category.setCnOrder(Integer.parseInt(orderStr));
-            }
-            
-            category.setYnUse(useYn != null ? useYn : "N");
-            
             // 카테고리 업데이트
-            boolean success = categoryService.updateCategory(category);
+            boolean success = categoryService.updateCategory(categoryDTO);
             
             if (success) {
                 response.sendRedirect(request.getContextPath() + "/admin/category/list?success=update");
             } else {
                 request.setAttribute("errorMessage", "카테고리 수정에 실패했습니다.");
-                request.setAttribute("category", category);
-                request.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(request, response);
+                request.setAttribute("category", categoryDTO);
+                request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
             }
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 카테고리 ID 형식입니다.");
         } catch (Exception e) {
             log.info("카테고리 수정 중 오류 발생: {}", e.getMessage());
             request.setAttribute("errorMessage", "카테고리 수정 중 오류가 발생했습니다: " + e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/views/admin/category/edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/views/admin/category/categoryEdit.jsp").forward(request, response);
         }
     }
     

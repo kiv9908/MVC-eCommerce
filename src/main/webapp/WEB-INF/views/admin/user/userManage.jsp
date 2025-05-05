@@ -9,13 +9,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/font.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/manager.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/sidebar.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/common.css">
   </head>
   <body>
+
+
     <div class="container-fluid">
       <div class="row">
         <!-- 사이드바 인클루드 -->
+        <jsp:useBean id="pageId" scope="request" class="java.lang.String"/>
+        <%
+          request.setAttribute("pageId", "user");
+        %>
         <%@ include file="/WEB-INF/includes/sidebar.jsp" %>
+
 
         <!-- 메인 콘텐츠 -->
         <div class="col-md-9 col-lg-10 px-4 py-3">
