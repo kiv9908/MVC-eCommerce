@@ -17,6 +17,17 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/font.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/sidebar.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/common.css">
+    <style>
+        .product-image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            object-fit: contain;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body class="bg-light">
 
@@ -48,12 +59,13 @@
             <c:choose>
                 <c:when test="${empty product.productCode}">
                     <!-- 상품 등록 폼 -->
-                    <form action="${pageContext.request.contextPath}/admin/product/create" method="post" class="needs-validation" novalidate>
+                    <form action="${pageContext.request.contextPath}/admin/product/create" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
                 </c:when>
                 <c:otherwise>
                     <!-- 상품 수정 폼 -->
-                    <form action="${pageContext.request.contextPath}/admin/product/edit" method="post" class="needs-validation" novalidate>
+                    <form action="${pageContext.request.contextPath}/admin/product/edit" method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
                     <input type="hidden" name="productCode" value="${product.productCode}">
+                    <input type="hidden" name="fileId" value="${product.fileId}">
                     
                     <div class="mb-3">
                         <label>상품 코드</label>
@@ -105,10 +117,40 @@
                         </div>
                     </div>
 
+                    <!-- 상품 이미지 업로드 영역 -->
                     <div class="mb-3">
-                        <label for="fileId" class="form-label">대표 이미지 ID</label>
-                        <input type="text" class="form-control" id="fileId" name="fileId" value="${product.fileId}">
-                        <div class="form-text">이미지 업로드 기능은 추후 구현 예정입니다.</div>
+                        <label for="productImage" class="form-label">상품 이미지</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="productImage" name="productImage" accept="image/*">
+                            <c:if test="${not empty product.fileId}">
+                                <span class="input-group-text" id="currentFileName">
+                                    <span id="fileNameDisplay">파일명.jpg</span>
+                                </span>
+                            </c:if>
+                        </div>
+                        <div class="form-text">이미지 파일만 업로드 가능합니다. (최대 10MB)</div>
+                        
+                        <!-- 이미지 미리보기 영역 -->
+                        <div id="imagePreviewContainer" class="mt-2">
+                            <c:if test="${not empty product.fileId}">
+                                <div class="original-image">
+                                    <img src="${pageContext.request.contextPath}/file/${product.fileId}" alt="상품 이미지" class="product-image-preview">
+                                    <div class="mt-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="fileDeleteOption" name="fileDeleteOption" value="delete">
+                                            <label class="form-check-label" for="fileDeleteOption">
+                                                이미지 삭제
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:if>
+                            <!-- 새 이미지 미리보기가 여기에 추가될 것입니다 -->
+                            <div id="newImagePreview" style="display: none;">
+                                <img id="newImagePreviewImg" src="" alt="새 이미지 미리보기" class="product-image-preview">
+                                <p class="mt-1 text-muted">업로드할 새 이미지</p>
+                            </div>
+                        </div>
                     </div>
 
                     <c:if test="${not empty product.productCode}">
@@ -132,7 +174,9 @@
                             <c:otherwise>
                                 <button type="submit" class="btn btn-primary">상품 수정</button>
                                 <a href="${pageContext.request.contextPath}/admin/product/delete/${product.productCode}"
-                                   class="btn btn-danger" title="상품 삭제"> 상품 삭제
+                                   class="btn btn-danger" title="상품 삭제"
+                                   onclick="return confirm('정말로 이 상품을 삭제하시겠습니까?');">
+                                    상품 삭제
                                 </a>
                             </c:otherwise>
                         </c:choose>
@@ -145,6 +189,12 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- 외부 스크립트 파일 로드 전 context path 설정 -->
+    <script>
+        // 컨텍스트 경로를 전역 변수로 설정 (JS 파일에서 사용)
+        var contextPath = '${pageContext.request.contextPath}';
+    </script>
+    <script src="${pageContext.request.contextPath}/js/admin/productEdit.js"></script>
 
 </body>
 </html>

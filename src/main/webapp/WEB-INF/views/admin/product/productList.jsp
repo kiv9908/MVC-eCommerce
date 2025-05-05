@@ -12,6 +12,25 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/sidebar.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/font.css" />
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin/common.css">
+    <style>
+        .product-thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .no-image-placeholder {
+            width: 50px;
+            height: 50px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 12px;
+        }
+    </style>
 </head>
 <body>
     <div class="container-fluid">
@@ -84,6 +103,7 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
+                                    <th>이미지</th>
                                     <th>상품코드</th>
                                     <th>상품명</th>
                                     <th>정가</th>
@@ -97,12 +117,30 @@
                             <tbody>
                                 <c:forEach var="product" items="${searchKeyword != null ? searchResults : products}">
                                     <tr>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${not empty product.fileId}">
+                                                    <img src="${pageContext.request.contextPath}/file/${product.fileId}" 
+                                                         alt="${product.productName}" 
+                                                         class="product-thumbnail">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <div class="no-image-placeholder">
+                                                        <i class="fas fa-image"></i>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
                                         <td>${product.productCode}</td>
                                         <td>${product.productName}</td>
                                         <td><fmt:formatNumber value="${product.customerPrice}" pattern="#,###" />원</td>
                                         <td><fmt:formatNumber value="${product.salePrice}" pattern="#,###" />원</td>
                                         <td>${product.stock}</td>
-                                        <td>${product.status}</td>
+                                        <td>
+                                            <span class="badge ${product.status eq '판매중' ? 'bg-success' : product.status eq '품절' ? 'bg-danger' : 'bg-warning'}">
+                                                ${product.status}
+                                            </span>
+                                        </td>
                                         <td>
                                             ${product.startDate} ~ ${product.endDate}
                                         </td>
@@ -111,12 +149,19 @@
                                                href="${pageContext.request.contextPath}/admin/product/edit/${product.productCode}">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <a class="btn btn-sm btn-outline-danger delete-btn"
+                                               href="#" 
+                                               data-product-code="${product.productCode}"
+                                               data-product-name="${product.productName}"
+                                               onclick="return confirm('정말로 이 상품을 삭제하시겠습니까?');">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 </c:forEach>
                                 <c:if test="${empty products}">
                                     <tr>
-                                        <td colspan="8" class="text-center">등록된 상품이 없습니다.</td>
+                                        <td colspan="9" class="text-center">등록된 상품이 없습니다.</td>
                                     </tr>
                                 </c:if>
                             </tbody>
@@ -126,52 +171,20 @@
         </div>
     </div>
     
-    <!-- 삭제 확인 모달 -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <h3>상품 삭제 확인</h3>
-            <p>정말로 "<span id="deleteProductName"></span>" 상품을 삭제하시겠습니까?</p>
-            <div class="modal-actions">
-                <button id="confirmDelete" class="btn btn-danger">삭제</button>
-                <button id="cancelDelete" class="btn btn-secondary">취소</button>
-            </div>
-        </div>
-    </div>
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            // 모달 관련 변수
-            var deleteModal = document.getElementById('deleteModal');
-            var deleteProductCode = '';
-            
-            // 삭제 버튼 클릭 시
+            // 삭제 버튼 클릭 이벤트
             $('.delete-btn').on('click', function(e) {
                 e.preventDefault();
-                deleteProductCode = $(this).data('product-code');
-                $('#deleteProductName').text($(this).data('product-name'));
-                deleteModal.style.display = 'block';
-            });
-            
-            // 삭제 확인
-            $('#confirmDelete').on('click', function() {
-                window.location.href = '${pageContext.request.contextPath}/admin/product/delete/' + deleteProductCode;
-            });
-            
-            // 삭제 취소
-            $('#cancelDelete').on('click', function() {
-                deleteModal.style.display = 'none';
-            });
-            
-            // 모달 외부 클릭 시 닫기
-            $(window).on('click', function(e) {
-                if (e.target == deleteModal) {
-                    deleteModal.style.display = 'none';
+                var productCode = $(this).data('product-code');
+                var productName = $(this).data('product-name');
+                
+                if (confirm('정말로 "' + productName + '" 상품을 삭제하시겠습니까?')) {
+                    window.location.href = '${pageContext.request.contextPath}/admin/product/delete/' + productCode;
                 }
             });
-
         });
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 </body>
 </html>
