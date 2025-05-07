@@ -34,7 +34,7 @@ public class WithdrawCommand implements Command {
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("user") == null) {
                 log.warn("로그인되지 않은 사용자가 회원 탈퇴 페이지에 접근 시도");
-                return "redirect:" + request.getContextPath() + "/login.user";
+                return "redirect:" + request.getContextPath() + "/user/login";
             }
 
             // 회원 탈퇴 페이지로 포워드
@@ -46,7 +46,7 @@ public class WithdrawCommand implements Command {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             log.warn("로그인되지 않은 사용자가 회원 탈퇴 시도");
-            return "redirect:" + request.getContextPath() + "/login.user";
+            return "redirect:" + request.getContextPath() + "/user/login";
         }
 
         User sessionUser = (User) session.getAttribute("user");
@@ -85,7 +85,7 @@ public class WithdrawCommand implements Command {
                 session.invalidate();
 
                 // 탈퇴 완료 메시지와 함께 로그인 페이지로 리다이렉트
-                return "redirect:" + request.getContextPath() + "/login.user?withdrawn=true";
+                return "redirect:" + request.getContextPath() + "/user/login?withdrawn=true";
             } else {
                 log.warn("회원 탈퇴 실패 - 탈퇴 처리 중 오류 발생");
                 request.setAttribute("errorMessage", "회원 탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.");

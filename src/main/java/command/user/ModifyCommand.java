@@ -33,7 +33,7 @@ public class ModifyCommand implements Command {
             HttpSession session = request.getSession(false);
             if (session == null || session.getAttribute("user") == null) {
                 log.warn("로그인되지 않은 사용자가 회원정보 수정 페이지에 접근 시도");
-                return "redirect:" + request.getContextPath() + "/login.user";
+                return "redirect:" + request.getContextPath() + "/user/login";
             }
 
             // 회원정보 수정 페이지로 포워드
@@ -45,7 +45,7 @@ public class ModifyCommand implements Command {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             log.warn("로그인되지 않은 사용자가 회원정보 수정 시도");
-            return "redirect:" + request.getContextPath() + "/login.user";
+            return "redirect:" + request.getContextPath() + "/user/login";
         }
 
         User sessionUser = (User) session.getAttribute("user");
