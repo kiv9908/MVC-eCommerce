@@ -2,9 +2,7 @@ package config;
 
 import domain.dao.*;
 import lombok.Getter;
-import service.AuthService;
-import service.ProductService;
-import service.UserService;
+import service.*;
 import util.DatabaseConnection;
 
 import java.io.Serializable;
@@ -20,9 +18,12 @@ public class AppConfig implements Serializable {
     private final ProductDAO productDAO;
     private final CategoryDAO categoryDAO;
     private final MappingDAO mappingDAO;
+
     private final UserService userService;
     private final ProductService productService;
     private final AuthService authService;
+    private final MappingService mappingService;
+    private final CategoryService categoryService;
 
     /**
      * 생성자를 private으로 선언하여 외부에서 인스턴스 생성 방지
@@ -38,6 +39,8 @@ public class AppConfig implements Serializable {
         this.userService = new UserService(userDAO);
         this.authService = new AuthService(userDAO);
         this.productService = new ProductService(productDAO);
+        this.mappingService = new MappingService(mappingDAO);
+        this.categoryService = new CategoryService(categoryDAO);
     }
 
     /**
