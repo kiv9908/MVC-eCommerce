@@ -3,10 +3,11 @@ package service;
 import domain.model.User;
 import domain.dao.UserDAO;
 import exception.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
-
+@Slf4j
 public class UserService {
 
     private final UserDAO userDAO;
@@ -22,7 +23,7 @@ public class UserService {
             throw new InvalidEmailException("유효하지 않은 이메일 형식입니다: " + user.getEmail());
         }
 
-        if (isValidPassword(user.getPassword())) {
+        if (isInvalidPassword(user.getPassword())) {
             throw new InvalidPasswordException("비밀번호는 대/소문자 포함, 숫자 포함, 5~15자여야 합니다");
         }
         
@@ -65,10 +66,13 @@ public class UserService {
         }
 
         // 새 비밀번호 형식 검증
-        if (isValidPassword(newPassword)) {
+        if (isInvalidPassword(newPassword)) {
             throw new InvalidPasswordException("비밀번호는 대문자, 소문자, 숫자를 모두 포함하여 5~15자여야 합니다.");
         }
 
+        // 새 비밀번호로 업데이트
+        user.setPassword(newPassword);
+        log.info(newPassword);
         userDAO.modify(user);
     }
 
@@ -77,7 +81,7 @@ public class UserService {
     }
 
 
-    private boolean isValidPassword(String password) {
+    private boolean isInvalidPassword(String password) {
         // 대/소문자 포함, 숫자 포함, 5~15자 검증
         return password == null ||
                 password.length() < 5 || password.length() > 15 ||

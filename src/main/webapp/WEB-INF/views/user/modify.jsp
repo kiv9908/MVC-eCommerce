@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/login.css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/user/nav.css"/>
 </head>
-<body class="d-flex align-items-center py-4 bg-body-tertiary">
+<body class="d-flex align-items-center bg-body-tertiary">
 <!-- 네비게이션 바 포함 -->
 <%@ include file="/WEB-INF/includes/nav.jsp" %>
 <main class="form-signin w-100 m-auto">

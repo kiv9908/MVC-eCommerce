@@ -119,13 +119,14 @@ public class UserDAOImpl implements UserDAO {
 
         try{
             conn = DatabaseConnection.getConnection();
-            
-            String sql = "UPDATE TB_USER SET nm_user = ? , no_mobile = ?, st_status = ? WHERE nm_email = ?";
+
+            String sql = "UPDATE TB_USER SET nm_user = ?, no_mobile = ?, st_status = ?, NM_PASWD = ? WHERE nm_email = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, user.getUserName());
             pstmt.setString(2, user.getMobileNumber());
             pstmt.setString(3, user.getStatus());
-            pstmt.setString(4, user.getEmail());
+            pstmt.setString(4, user.getPassword());
+            pstmt.setString(5, user.getEmail());
 
             pstmt.executeUpdate();
         }
