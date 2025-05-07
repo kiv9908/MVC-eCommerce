@@ -51,7 +51,7 @@
         
         <button class="btn btn-danger w-100 py-2 mt-3" type="submit">회원 탈퇴</button>
         <div class="mt-3 text-center">
-            <a href="${pageContext.request.contextPath}/user/update" class="text-primary">회원정보 수정으로 돌아가기</a>
+            <a href="${pageContext.request.contextPath}/user/modify" class="text-primary">회원정보 수정으로 돌아가기</a>
             <span class="mx-2">|</span>
             <a href="/">메인으로 돌아가기</a>
         </div>
