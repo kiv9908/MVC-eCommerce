@@ -79,6 +79,9 @@ public class ModifyCommand implements Command {
                 // 비밀번호 변경 시도
                 userService.changePassword(userId, currentPassword, newPassword);
                 log.info("비밀번호 변경 성공 - 사용자ID: {}", userId);
+                
+                // 비밀번호 변경 후 사용자 정보 다시 조회하여 세션 업데이트
+                user = userService.getUserByEmail(userId);
             } else if ((currentPassword != null && !currentPassword.isEmpty()) ||
                     (newPassword != null && !newPassword.isEmpty())) {
                 // 현재 비밀번호나 새 비밀번호 중 하나만 입력한 경우
@@ -87,8 +90,13 @@ public class ModifyCommand implements Command {
                 return "/WEB-INF/views/user/modify.jsp";
             }
 
-            // 사용자 정보 업데이트
-            userService.modifyUser(user);
+            // 기본 정보만 업데이트 (비밀번호 제외)
+            if (currentPassword == null || currentPassword.isEmpty() ||
+                newPassword == null || newPassword.isEmpty()) {
+                user.setUserName(userName);
+                user.setMobileNumber(mobileNumber);
+                userService.modifyUser(user);
+            }
 
             // 세션 정보 업데이트
             session.setAttribute("user", user);
