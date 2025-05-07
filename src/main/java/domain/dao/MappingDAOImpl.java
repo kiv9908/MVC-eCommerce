@@ -298,7 +298,7 @@ public class MappingDAOImpl implements MappingDAO {
         ResultSet rs = null;
         
         List<Map<String, Object>> categories = new ArrayList<>();
-        String sql = "SELECT nb_category, nm_category, nm_full_category FROM tb_category ORDER BY nm_full_category";
+        String sql = "SELECT nb_category, nm_category, nm_full_category FROM tb_category WHERE YN_DELETE = 'N' ORDER BY nm_full_category";
         
         try {
             conn = DatabaseConnection.getConnection();
