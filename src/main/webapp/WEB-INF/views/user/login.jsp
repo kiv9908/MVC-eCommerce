@@ -44,10 +44,6 @@
                     <label for="floatingPassword">비밀번호</label>
                 </div>
 
-                <div class="forgot-password">
-                    <small><a href="#">비밀번호를 잊으셨나요?</a></small>
-                </div>
-
                 <button class="btn btn-primary w-100 py-2" type="submit">로그인</button>
                 
                 <div class="mt-4 text-center">
