@@ -1,77 +1,52 @@
-package controller.user;
+package command.user;
 
+import command.Command;
 import config.AppConfig;
 import domain.model.User;
 import lombok.extern.slf4j.Slf4j;
 import service.AuthService;
 import service.UserService;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+
 @Slf4j
-@WebServlet(name = "WithdrawServlet", urlPatterns = "/user/withdraw")
-public class WithdrawServlet extends HttpServlet {
+public class WithdrawCommand implements Command {
     private AuthService authService;
     private UserService userService;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-        // AppConfig를 통해 의존성 주입
+    public WithdrawCommand() {
         AppConfig appConfig = AppConfig.getInstance();
         this.authService = appConfig.getAuthService();
         this.userService = appConfig.getUserService();
     }
 
-
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        showWithdrawForm(request, response);
+    public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // GET 요청 처리 - 회원 탈퇴 폼 표시
+        if (request.getMethod().equalsIgnoreCase("GET")) {
+            log.debug("회원 탈퇴 폼 표시");
 
-    }
+            // 로그인 여부 확인
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("user") == null) {
+                log.warn("로그인되지 않은 사용자가 회원 탈퇴 페이지에 접근 시도");
+                return "redirect:" + request.getContextPath() + "/login.user";
+            }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        processWithdraw(request, response);
-    }
-
-    // 회원 탈퇴 폼 표시
-    private void showWithdrawForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        log.debug("회원 탈퇴 폼 표시");
-
-        // 로그인 여부 확인
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
-            log.warn("로그인되지 않은 사용자가 회원 탈퇴 페이지에 접근 시도");
-            response.sendRedirect(request.getContextPath() + "/user/login");
-            return;
+            // 회원 탈퇴 페이지로 포워드
+            return "/WEB-INF/views/user/withdraw.jsp";
         }
 
-        // 회원 탈퇴 페이지로 포워드
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/user/withdraw.jsp");
-        dispatcher.forward(request, response);
-    }
-
-    // 회원 탈퇴 처리
-    private void processWithdraw(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
+        // POST 요청 처리 - 회원 탈퇴 로직 실행
         // 로그인 여부 확인
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             log.warn("로그인되지 않은 사용자가 회원 탈퇴 시도");
-            response.sendRedirect(request.getContextPath() + "/user/login");
-            return;
+            return "redirect:" + request.getContextPath() + "/login.user";
         }
 
         User sessionUser = (User) session.getAttribute("user");
@@ -87,17 +62,13 @@ public class WithdrawServlet extends HttpServlet {
         if (password == null || password.isEmpty()) {
             log.warn("회원 탈퇴 실패 - 비밀번호 미입력");
             request.setAttribute("errorMessage", "비밀번호를 입력해주세요.");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/user/withdraw.jsp");
-            dispatcher.forward(request, response);
-            return;
+            return "/WEB-INF/views/user/withdraw.jsp";
         }
 
         if (confirmWithdraw == null || !confirmWithdraw.equals("yes")) {
             log.warn("회원 탈퇴 실패 - 동의 체크박스 미선택");
             request.setAttribute("errorMessage", "회원 탈퇴에 동의해주셔야 합니다.");
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/user/withdraw.jsp");
-            dispatcher.forward(request, response);
-            return;
+            return "/WEB-INF/views/user/withdraw.jsp";
         }
 
         try {
@@ -114,12 +85,11 @@ public class WithdrawServlet extends HttpServlet {
                 session.invalidate();
 
                 // 탈퇴 완료 메시지와 함께 로그인 페이지로 리다이렉트
-                response.sendRedirect(request.getContextPath() + "/user/login?withdrawn=true");
+                return "redirect:" + request.getContextPath() + "/login.user?withdrawn=true";
             } else {
                 log.warn("회원 탈퇴 실패 - 탈퇴 처리 중 오류 발생");
                 request.setAttribute("errorMessage", "회원 탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/user/withdraw.jsp");
-                dispatcher.forward(request, response);
+                return "/WEB-INF/views/user/withdraw.jsp";
             }
 
         } catch (Exception e) {
@@ -132,8 +102,7 @@ public class WithdrawServlet extends HttpServlet {
                 request.setAttribute("errorMessage", "회원 탈퇴 처리 중 오류가 발생했습니다: " + e.getMessage());
             }
 
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/user/withdraw.jsp");
-            dispatcher.forward(request, response);
+            return "/WEB-INF/views/user/withdraw.jsp";
         }
     }
 }
