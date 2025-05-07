@@ -73,7 +73,7 @@ public class JoinCommand implements Command {
             log.info("회원가입 성공 - 이메일: {}", email);
 
             // 회원가입 성공 후 로그인 페이지로 리다이렉트
-            return "redirect:" + request.getContextPath() + "/login.user?registered=true";
+            return "redirect:" + request.getContextPath() + "/user/login?registered=true";
 
         } catch (InvalidPasswordException e) {
             log.warn("회원가입 실패 - 비밀번호 유효성 검사 실패: {}", e.getMessage());
