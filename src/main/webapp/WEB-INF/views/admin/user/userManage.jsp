@@ -201,7 +201,7 @@
     </script>
     
     <!-- 사용자 관리 스크립트 -->
-    <script src="${pageContext.request.contextPath}/js/admin/userManager.js"></script>
+    <script src="${pageContext.request.contextPath}/js/userManage.js"></script>
 
   </body>
 </html>
