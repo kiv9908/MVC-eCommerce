@@ -134,7 +134,14 @@ public class ProductDAOImpl implements ProductDAO {
             pstmt.setString(2, product.getDetailExplain());
             // fileId가 null일 수 있으므로 적절히 처리
             if (product.getFileId() != null) {
-                pstmt.setString(3, product.getFileId());
+                // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
+            String fileId = product.getFileId();
+            if (fileId != null && fileId.length() > 30) {
+                // 30자로 잘라내기
+                fileId = fileId.substring(0, 30);
+                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + product.getFileId() + ", 저장된 값: " + fileId);
+            }
+            pstmt.setString(3, fileId);
             } else {
                 pstmt.setNull(3, Types.VARCHAR);
             }
@@ -192,7 +199,14 @@ public class ProductDAOImpl implements ProductDAO {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, product.getProductName());
             pstmt.setString(2, product.getDetailExplain());
-            pstmt.setString(3, product.getFileId());
+            // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
+            String fileId = product.getFileId();
+            if (fileId != null && fileId.length() > 30) {
+                // 30자로 잘라내기
+                fileId = fileId.substring(0, 30);
+                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + product.getFileId() + ", 저장된 값: " + fileId);
+            }
+            pstmt.setString(3, fileId);
             pstmt.setString(4, product.getStartDate());
             pstmt.setString(5, product.getEndDate());
 

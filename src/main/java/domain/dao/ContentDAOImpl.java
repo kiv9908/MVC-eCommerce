@@ -1,0 +1,247 @@
+package domain.dao;
+
+import domain.model.Content;
+import util.DatabaseConnection;
+
+import java.io.ByteArrayInputStream;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+public class ContentDAOImpl implements ContentDAO {
+    
+    @Override
+    public Content findByFileId(String fileId) {
+        Content content = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            String sql = "SELECT * FROM TB_CONTENT WHERE id_file = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, fileId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                content = resultSetToContent(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return content;
+    }
+    
+    @Override
+    public List<Content> findByServiceId(String serviceId) {
+        List<Content> contents = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            String sql = "SELECT * FROM TB_CONTENT WHERE id_service = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, serviceId);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Content content = resultSetToContent(rs);
+                contents.add(content);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return contents;
+    }
+    
+    @Override
+    public String save(Content content) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+        // ID_FILE 컬럼은 VARCHAR2(30)이므로 30자로 제한
+        if (fileId.length() > 30) {
+            fileId = fileId.substring(0, 30);
+        }
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            String sql = "INSERT INTO TB_CONTENT (id_file, nm_org_file, nm_save_file, nm_file_path, " +
+                    "bo_save_file, nm_file_ext, cd_file_type, da_save, cn_hit, id_service, id_org_file, " +
+                    "cn_content, no_register, da_first_date) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, SYSDATE, 0, ?, ?, ?, ?, SYSDATE)";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, fileId);
+            pstmt.setString(2, content.getOriginalFileName());
+            pstmt.setString(3, content.getSavedFileName());
+            pstmt.setString(4, content.getFilePath());
+            
+            // BLOB 데이터 처리
+            if (content.getSaveFile() != null) {
+                pstmt.setBinaryStream(5, new ByteArrayInputStream(content.getSaveFile()), content.getSaveFile().length);
+            } else {
+                pstmt.setNull(5, Types.BLOB);
+            }
+            
+            pstmt.setString(6, content.getFileExtension());
+            pstmt.setString(7, content.getFileType());
+            pstmt.setString(8, content.getServiceId());
+            pstmt.setString(9, content.getOrgFileId());
+            pstmt.setString(10, content.getContent());
+            pstmt.setString(11, content.getRegisterNo());
+
+            pstmt.executeUpdate();
+            content.setFileId(fileId); // 생성된 ID를 객체에 설정
+            return fileId;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+    }
+    
+    @Override
+    public boolean update(Content content) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            // BLOB 데이터가 있는지 여부에 따라 다른 SQL 문 사용
+            String sql;
+            if (content.getSaveFile() != null) {
+                sql = "UPDATE TB_CONTENT SET nm_org_file = ?, nm_save_file = ?, nm_file_path = ?, " +
+                      "bo_save_file = ?, nm_file_ext = ?, cd_file_type = ?, id_service = ?, " +
+                      "id_org_file = ?, cn_content = ? WHERE id_file = ?";
+            } else {
+                sql = "UPDATE TB_CONTENT SET nm_org_file = ?, nm_save_file = ?, nm_file_path = ?, " +
+                      "nm_file_ext = ?, cd_file_type = ?, id_service = ?, " +
+                      "id_org_file = ?, cn_content = ? WHERE id_file = ?";
+            }
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, content.getOriginalFileName());
+            pstmt.setString(2, content.getSavedFileName());
+            pstmt.setString(3, content.getFilePath());
+            
+            int paramIndex = 4;
+            if (content.getSaveFile() != null) {
+                pstmt.setBinaryStream(paramIndex++, new ByteArrayInputStream(content.getSaveFile()), content.getSaveFile().length);
+            }
+            
+            pstmt.setString(paramIndex++, content.getFileExtension());
+            pstmt.setString(paramIndex++, content.getFileType());
+            pstmt.setString(paramIndex++, content.getServiceId());
+            pstmt.setString(paramIndex++, content.getOrgFileId());
+            pstmt.setString(paramIndex++, content.getContent());
+            pstmt.setString(paramIndex, content.getFileId());
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+        return success;
+    }
+    
+    @Override
+    public boolean delete(String fileId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            String sql = "DELETE FROM TB_CONTENT WHERE id_file = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, fileId);
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+        return success;
+    }
+    
+    @Override
+    public boolean incrementHitCount(String fileId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        boolean success = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            
+            String sql = "UPDATE TB_CONTENT SET cn_hit = cn_hit + 1 WHERE id_file = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, fileId);
+            
+            int affectedRows = pstmt.executeUpdate();
+            success = (affectedRows > 0);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+        return success;
+    }
+    
+    // ResultSet을 Content 객체로 변환하는 헬퍼 메서드
+    private Content resultSetToContent(ResultSet rs) throws SQLException {
+        Content content = new Content();
+        content.setFileId(rs.getString("ID_FILE"));
+        content.setOriginalFileName(rs.getString("NM_ORG_FILE"));
+        content.setSavedFileName(rs.getString("NM_SAVE_FILE"));
+        content.setFilePath(rs.getString("NM_FILE_PATH"));
+        
+        // BLOB 데이터 읽기 (필요한 경우)
+        Blob blob = rs.getBlob("BO_SAVE_FILE");
+        if (blob != null) {
+            content.setSaveFile(blob.getBytes(1, (int) blob.length()));
+        }
+        
+        content.setFileExtension(rs.getString("NM_FILE_EXT"));
+        content.setFileType(rs.getString("CD_FILE_TYPE"));
+        content.setSaveDate(rs.getDate("DA_SAVE"));
+        content.setHitCount(rs.getInt("CN_HIT"));
+        content.setServiceId(rs.getString("ID_SERVICE"));
+        content.setOrgFileId(rs.getString("ID_ORG_FILE"));
+        content.setContent(rs.getString("CN_CONTENT"));
+        content.setRegisterNo(rs.getString("NO_REGISTER"));
+        content.setFirstDate(rs.getDate("DA_FIRST_DATE"));
+        
+        return content;
+    }
+    
+    // 리소스 정리 헬퍼 메서드
+    private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection conn) {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (conn != null) DatabaseConnection.closeConnection(conn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
