@@ -3,7 +3,7 @@ package controller.admin;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import command.factory.AdminUserCommandFactory;
+import command.factory.admin.AdminUserCommandFactory;
 import controller.AbstractDomainController;
 
 @WebServlet(name = "AdminUserController", urlPatterns = "/admin/user/*")

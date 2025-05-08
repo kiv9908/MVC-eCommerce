@@ -1,4 +1,4 @@
-package command.factory;
+package command.factory.admin;
 
 import command.Command;
 import command.CommandFactory;

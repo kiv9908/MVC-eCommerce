@@ -5,7 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.annotation.MultipartConfig;
 
-import command.factory.AdminProductCommandFactory;
+import command.factory.admin.AdminProductCommandFactory;
 import controller.AbstractDomainController;
 
 @WebServlet(name = "AdminProductController", urlPatterns = "/admin/product/*")

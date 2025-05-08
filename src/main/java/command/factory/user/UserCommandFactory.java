@@ -1,4 +1,4 @@
-package command.factory;
+package command.factory.user;
 
 import command.Command;
 import command.CommandFactory;

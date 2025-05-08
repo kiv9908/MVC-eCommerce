@@ -3,7 +3,7 @@ package controller.admin;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import command.factory.AdminCategoryCommandFactory;
+import command.factory.admin.AdminCategoryCommandFactory;
 import controller.AbstractDomainController;
 
 @WebServlet(name = "AdminCategoryController", urlPatterns = "/admin/category/*")
