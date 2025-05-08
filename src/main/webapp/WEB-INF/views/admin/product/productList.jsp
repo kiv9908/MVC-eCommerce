@@ -150,10 +150,10 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <a class="btn btn-sm btn-outline-danger delete-btn"
-                                               href="#" 
+                                               href="${pageContext.request.contextPath}/admin/product/delete/${product.productCode}"
                                                data-product-code="${product.productCode}"
                                                data-product-name="${product.productName}"
-                                               onclick="return confirm('정말로 이 상품을 삭제하시겠습니까?');">
+                                            >
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
                                         </td>
@@ -172,19 +172,5 @@
     </div>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // 삭제 버튼 클릭 이벤트
-            $('.delete-btn').on('click', function(e) {
-                e.preventDefault();
-                var productCode = $(this).data('product-code');
-                var productName = $(this).data('product-name');
-                
-                if (confirm('정말로 "' + productName + '" 상품을 삭제하시겠습니까?')) {
-                    window.location.href = '${pageContext.request.contextPath}/admin/product/delete/' + productCode;
-                }
-            });
-        });
-    </script>
 </body>
 </html>

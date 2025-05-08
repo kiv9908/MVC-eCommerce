@@ -138,6 +138,6 @@
 </script>
 
 <!-- 사용자 관리 스크립트 -->
-<script src="${pageContext.request.contextPath}/js/userList.js"></script>
+<script src="${pageContext.request.contextPath}/js/admin/userList.js"></script>
 </body>
 </html>
