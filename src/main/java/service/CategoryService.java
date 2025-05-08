@@ -159,46 +159,7 @@ public class CategoryService {
         
         return categoryDAO.save(category) > 0;
     }
-    
-    /**
-     * 기존 메서드 유지 (하위 호환성)
-     */
-    public boolean createCategory(Category category) {
-        // 새 카테고리의 ID 설정 (Oracle Sequence 사용)
-        int nextCategoryId = getNextCategoryId();
-        category.setNbCategory(nextCategoryId);
-        
-        // 상위 카테고리 지정되었을 경우 전체 카테고리명 설정
-        if (category.getNbParentCategory() != null && category.getNbParentCategory() > 0) {
-            Category parentCategory = categoryDAO.findById(category.getNbParentCategory());
-            if (parentCategory != null) {
-                // 부모 카테고리의 전체 경로 + 현재 카테고리명
-                String fullCategoryName = parentCategory.getNmFullCategory() != null ? 
-                        parentCategory.getNmFullCategory() + " > " + category.getNmCategory() : 
-                        parentCategory.getNmCategory() + " > " + category.getNmCategory();
-                category.setNmFullCategory(fullCategoryName);
-                
-                // 레벨 설정 (부모 레벨 + 1)
-                if (parentCategory.getCnLevel() != null) {
-                    category.setCnLevel(parentCategory.getCnLevel() + 1);
-                } else {
-                    // 기본적으로 부모가 있으면 최소 2레벨
-                    category.setCnLevel(2);
-                }
-            }
-        } else {
-            // 최상위 카테고리인 경우
-            category.setNmFullCategory(category.getNmCategory());
-            category.setCnLevel(1); // 대분류는 1레벨
-        }
-        
-        // 기본값 설정
-        if (category.getYnUse() == null) {
-            category.setYnUse("Y"); // 기본적으로 활성화
-        }
-        
-        return categoryDAO.save(category) > 0;
-    }
+
     
     /**
      * DTO로부터 카테고리 수정
@@ -264,65 +225,7 @@ public class CategoryService {
         
         return categoryDAO.update(category);
     }
-    
-    /**
-     * 기존 메서드 유지 (하위 호환성)
-     */
-    public boolean updateCategory(Category category) {
-        // 기존 카테고리 정보 조회
-        Category existingCategory = categoryDAO.findById(category.getNbCategory());
-        if (existingCategory == null) {
-            return false;
-        }
-        
-        // 상위 카테고리 변경 시 전체 카테고리명 갱신
-        if (category.getNbParentCategory() != null && 
-            (existingCategory.getNbParentCategory() == null || 
-             !category.getNbParentCategory().equals(existingCategory.getNbParentCategory()))) {
-            
-            Category parentCategory = categoryDAO.findById(category.getNbParentCategory());
-            if (parentCategory != null) {
-                String fullCategoryName = parentCategory.getNmFullCategory() != null ? 
-                        parentCategory.getNmFullCategory() + " > " + category.getNmCategory() : 
-                        parentCategory.getNmCategory() + " > " + category.getNmCategory();
-                category.setNmFullCategory(fullCategoryName);
-                
-                // 레벨 설정 (부모 레벨 + 1)
-                if (parentCategory.getCnLevel() != null) {
-                    category.setCnLevel(parentCategory.getCnLevel() + 1);
-                }
-            }
-        } else if (category.getNbParentCategory() == null || category.getNbParentCategory() == 0) {
-            // 최상위 카테고리로 변경된 경우
-            category.setNmFullCategory(category.getNmCategory());
-            category.setCnLevel(1);
-        } else {
-            // 카테고리명만 변경된 경우 전체 카테고리명 갱신
-            if (!category.getNmCategory().equals(existingCategory.getNmCategory()) && 
-                existingCategory.getNmFullCategory() != null) {
-                
-                String oldFullName = existingCategory.getNmFullCategory();
-                String newFullName;
-                
-                if (existingCategory.getNbParentCategory() != null && existingCategory.getNbParentCategory() > 0) {
-                    // 부모가 있는 경우
-                    int lastSeparatorIndex = oldFullName.lastIndexOf(" > ");
-                    if (lastSeparatorIndex != -1) {
-                        newFullName = oldFullName.substring(0, lastSeparatorIndex) + " > " + category.getNmCategory();
-                    } else {
-                        newFullName = category.getNmCategory();
-                    }
-                } else {
-                    // 최상위 카테고리인 경우
-                    newFullName = category.getNmCategory();
-                }
-                
-                category.setNmFullCategory(newFullName);
-            }
-        }
-        
-        return categoryDAO.update(category);
-    }
+
     
     /**
      * 카테고리 삭제

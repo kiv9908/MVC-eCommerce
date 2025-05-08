@@ -1,6 +1,7 @@
 package domain.dao;
 
 import domain.dto.MappingDTO;
+import lombok.extern.slf4j.Slf4j;
 import util.DatabaseConnection;
 
 import java.sql.*;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static util.DatabaseConnection.getConnection;
-
+@Slf4j
 public class MappingDAOImpl implements MappingDAO {
 
     public MappingDAOImpl() {}
@@ -211,22 +212,30 @@ public class MappingDAOImpl implements MappingDAO {
         
         String sql = "DELETE FROM tb_category_product_mapping WHERE NO_PRODUCT = ? AND NB_CATEGORY = ?";
         boolean success = false;
-        
+
         try {
             conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);  // 자동 커밋 끄기
+
             pstmt = conn.prepareStatement(sql);
-            
             pstmt.setString(1, productCode);
             pstmt.setLong(2, categoryId);
-            
+
             int affectedRows = pstmt.executeUpdate();
             success = affectedRows > 0;
+
+            if (success) {
+                conn.commit();  // 성공 시 커밋
+            } else {
+                conn.rollback();  // 실패 시 롤백
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            if (conn != null) conn.rollback();  // 예외 발생 시 롤백
+            throw e;  // 혹은 다시 던지기
         } finally {
             closeResources(null, pstmt, conn);
         }
-        
+
         return success;
     }
 
@@ -289,7 +298,7 @@ public class MappingDAOImpl implements MappingDAO {
         ResultSet rs = null;
         
         List<Map<String, Object>> categories = new ArrayList<>();
-        String sql = "SELECT nb_category, nm_category, nm_full_category FROM tb_category ORDER BY nm_full_category";
+        String sql = "SELECT nb_category, nm_category, nm_full_category FROM tb_category WHERE YN_DELETE = 'N' ORDER BY nm_full_category";
         
         try {
             conn = DatabaseConnection.getConnection();

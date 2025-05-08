@@ -17,7 +17,7 @@
                     </li>
                     <% if(session.getAttribute("user") != null && ((domain.model.User)session.getAttribute("user")).getUserType().equals("20")) { %>
                     <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/admin/modify">관리자 페이지</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/admin/user/list">관리자 페이지</a>
                     </li>
                     <% } %>
                     <li class="nav-item">

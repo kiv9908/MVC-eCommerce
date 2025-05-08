@@ -54,18 +54,6 @@ public class MappingService {
         }
     }
     
-    /**
-     * 기존 카테고리 매핑을 업데이트합니다.
-     */
-    public boolean updateMapping(MappingDTO mappingDTO) {
-        try {
-            return mappingDAO.updateMapping(mappingDTO);
-        } catch (SQLException e) {
-            log.error("카테고리 매핑 업데이트 중 오류 발생: {}", e.getMessage(), e);
-            return false;
-        }
-    }
-    
 
     /**
      * 상품 코드와 카테고리 ID로 카테고리 매핑을 삭제합니다.
