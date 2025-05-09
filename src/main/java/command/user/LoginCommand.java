@@ -73,8 +73,18 @@ public class LoginCommand implements Command {
 
                 log.info("로그인 성공 - 사용자: {}, 관리자: {}", userDTO.getUserId(), isAdmin);
 
-                // 로그인 성공 후 메인 페이지로 리다이렉트
-                return "redirect:" + request.getContextPath() + "/";
+                // 원래 요청했던 URL이 있는지 확인
+                String redirectURL = (String) session.getAttribute("redirectAfterLogin");
+
+                if (redirectURL != null) {
+                    // 세션에서 리다이렉트 URL 제거
+                    session.removeAttribute("redirectAfterLogin");
+                    return "redirect:"+redirectURL;
+                } else {
+                    // 기본 메인 페이지로 리다이렉트
+                    return "redirect:" + request.getContextPath() + "/";
+                }
+
             } else {
                 // 로그인 실패 (이 부분은 실행되지 않을 수 있음, AuthService에서 예외가 발생할 수 있음)
                 log.warn("로그인 실패 - 이메일: {}", email);

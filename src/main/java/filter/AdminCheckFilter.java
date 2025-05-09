@@ -44,7 +44,24 @@ public class AdminCheckFilter implements Filter {
             // 관리자인 경우, 요청한 페이지로 계속 진행
             chain.doFilter(request, response);
         } else {
-            // 관리자가 아닌 경우, 메인 페이지나 권한 오류 페이지로 리다이렉트
+            // 관리자가 아닌 경우, 현재 요청한 URL을 세션에 저장
+            String requestURI = httpRequest.getRequestURI();
+            String queryString = httpRequest.getQueryString();
+
+            // 쿼리 파라미터가 있는 경우 추가
+            if (queryString != null && !queryString.isEmpty()) {
+                requestURI += "?" + queryString;
+            }
+
+            // 세션이 없으면 세션 생성
+            if (session == null) {
+                session = httpRequest.getSession(true);
+            }
+
+            // 원래 요청했던 URL을 세션에 저장
+            session.setAttribute("redirectAfterLogin", requestURI);
+
+            // 로그인 페이지로 리다이렉트
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/user/login");
         }
     }
