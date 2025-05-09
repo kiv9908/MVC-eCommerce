@@ -77,7 +77,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 
 
     @Override
-    public int save(CategoryDTO category) {
+    public int save(CategoryDTO categoryDTO) {
         String sql = "INSERT INTO tb_category (nb_category, nb_parent_category, nm_category, nm_full_category, nm_explain, cn_level, cn_order, yn_use, yn_delete, no_register, da_first_date) " +
                      "VALUES (SEQ_TB_CATEGORY.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, 'N', ?, SYSDATE)";
 
@@ -85,40 +85,40 @@ public class CategoryDAOImpl implements CategoryDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // nb_parent_category
-            if (category.getParentId() != null) {
-                pstmt.setInt(1, category.getParentId());
+            if (categoryDTO.getParentId() != null) {
+                pstmt.setInt(1, categoryDTO.getParentId());
             } else {
                 pstmt.setNull(1, Types.INTEGER);
             }
 
             // nm_category
-            pstmt.setString(2, category.getName());
+            pstmt.setString(2, categoryDTO.getName());
 
             // nm_full_category
-            pstmt.setString(3, category.getFullName());
+            pstmt.setString(3, categoryDTO.getFullName());
 
             // nm_explain
-            pstmt.setString(4, category.getDescription());
+            pstmt.setString(4, categoryDTO.getDescription());
 
             // cn_level
-            if (category.getLevel() != null) {
-                pstmt.setInt(5, category.getLevel());
+            if (categoryDTO.getLevel() != null) {
+                pstmt.setInt(5, categoryDTO.getLevel());
             } else {
                 pstmt.setNull(5, Types.INTEGER);
             }
 
             // cn_order
-            if (category.getOrder() != null) {
-                pstmt.setInt(6, category.getOrder());
+            if (categoryDTO.getOrder() != null) {
+                pstmt.setInt(6, categoryDTO.getOrder());
             } else {
                 pstmt.setNull(6, Types.INTEGER);
             }
 
             // yn_use
-            pstmt.setString(7, category.getUseYn());
+            pstmt.setString(7, categoryDTO.getUseYn());
 
             // no_register
-            pstmt.setString(8, category.getRegisterId());
+            pstmt.setString(8, categoryDTO.getRegisterId());
 
             return pstmt.executeUpdate();
 
@@ -129,36 +129,36 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public boolean update(CategoryDTO category) {
+    public boolean update(CategoryDTO categoryDTO) {
         String sql = "UPDATE tb_category SET nm_category = ?, nm_full_category = ?, nm_explain = ?, " +
                      "cn_level = ?, cn_order = ?, yn_use = ? WHERE nb_category = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, category.getName());
-            pstmt.setString(2, category.getFullName());
-            pstmt.setString(3, category.getDescription());
+            pstmt.setString(1, categoryDTO.getName());
+            pstmt.setString(2, categoryDTO.getFullName());
+            pstmt.setString(3, categoryDTO.getDescription());
 
-            if (category.getLevel() != null) {
-                pstmt.setInt(4, category.getLevel());
+            if (categoryDTO.getLevel() != null) {
+                pstmt.setInt(4, categoryDTO.getLevel());
             } else {
                 pstmt.setNull(4, Types.INTEGER);
             }
 
-            if (category.getOrder() != null) {
-                pstmt.setInt(5, category.getOrder());
+            if (categoryDTO.getOrder() != null) {
+                pstmt.setInt(5, categoryDTO.getOrder());
             } else {
                 pstmt.setNull(5, Types.INTEGER);
             }
 
-            pstmt.setString(6, category.getUseYn());
-            pstmt.setInt(7, category.getId());
+            pstmt.setString(6, categoryDTO.getUseYn());
+            pstmt.setInt(7, categoryDTO.getId());
 
             return pstmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            log.error("카테고리 수정 중 오류 발생: {}", category.getId(), e);
+            log.error("카테고리 수정 중 오류 발생: {}", categoryDTO.getId(), e);
         }
 
         return false;
