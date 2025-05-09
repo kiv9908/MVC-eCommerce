@@ -1,6 +1,6 @@
 package domain.dao;
 
-import domain.model.Content;
+import domain.dto.ContentDTO;
 import util.DatabaseConnection;
 
 import java.io.ByteArrayInputStream;
@@ -12,8 +12,8 @@ import java.util.UUID;
 public class ContentDAOImpl implements ContentDAO {
     
     @Override
-    public Content findByFileId(String fileId) {
-        Content content = null;
+    public ContentDTO findByFileId(String fileId) {
+        ContentDTO contentDTO = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -27,19 +27,19 @@ public class ContentDAOImpl implements ContentDAO {
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                content = resultSetToContent(rs);
+                contentDTO = resultSetToContent(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             closeResources(rs, pstmt, conn);
         }
-        return content;
+        return contentDTO;
     }
     
     @Override
-    public List<Content> findByServiceId(String serviceId) {
-        List<Content> contents = new ArrayList<>();
+    public List<ContentDTO> findByServiceId(String serviceId) {
+        List<ContentDTO> contents = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -53,8 +53,8 @@ public class ContentDAOImpl implements ContentDAO {
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Content content = resultSetToContent(rs);
-                contents.add(content);
+                ContentDTO contentDTO = resultSetToContent(rs);
+                contents.add(contentDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -65,7 +65,7 @@ public class ContentDAOImpl implements ContentDAO {
     }
     
     @Override
-    public String save(Content content) {
+    public String save(ContentDTO contentDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -84,26 +84,26 @@ public class ContentDAOImpl implements ContentDAO {
             
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, fileId);
-            pstmt.setString(2, content.getOriginalFileName());
-            pstmt.setString(3, content.getSavedFileName());
-            pstmt.setString(4, content.getFilePath());
+            pstmt.setString(2, contentDTO.getOriginalFileName());
+            pstmt.setString(3, contentDTO.getSavedFileName());
+            pstmt.setString(4, contentDTO.getFilePath());
             
             // BLOB 데이터 처리
-            if (content.getSaveFile() != null) {
-                pstmt.setBinaryStream(5, new ByteArrayInputStream(content.getSaveFile()), content.getSaveFile().length);
+            if (contentDTO.getSaveFile() != null) {
+                pstmt.setBinaryStream(5, new ByteArrayInputStream(contentDTO.getSaveFile()), contentDTO.getSaveFile().length);
             } else {
                 pstmt.setNull(5, Types.BLOB);
             }
             
-            pstmt.setString(6, content.getFileExtension());
-            pstmt.setString(7, content.getFileType());
-            pstmt.setString(8, content.getServiceId());
-            pstmt.setString(9, content.getOrgFileId());
-            pstmt.setString(10, content.getContent());
-            pstmt.setString(11, content.getRegisterNo());
+            pstmt.setString(6, contentDTO.getFileExtension());
+            pstmt.setString(7, contentDTO.getFileType());
+            pstmt.setString(8, contentDTO.getServiceId());
+            pstmt.setString(9, contentDTO.getOrgFileId());
+            pstmt.setString(10, contentDTO.getContent());
+            pstmt.setString(11, contentDTO.getRegisterNo());
 
             pstmt.executeUpdate();
-            content.setFileId(fileId); // 생성된 ID를 객체에 설정
+            contentDTO.setFileId(fileId); // 생성된 ID를 객체에 설정
             return fileId;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -114,7 +114,7 @@ public class ContentDAOImpl implements ContentDAO {
     }
     
     @Override
-    public boolean update(Content content) {
+    public boolean update(ContentDTO contentDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         boolean success = false;
@@ -124,7 +124,7 @@ public class ContentDAOImpl implements ContentDAO {
             
             // BLOB 데이터가 있는지 여부에 따라 다른 SQL 문 사용
             String sql;
-            if (content.getSaveFile() != null) {
+            if (contentDTO.getSaveFile() != null) {
                 sql = "UPDATE TB_CONTENT SET nm_org_file = ?, nm_save_file = ?, nm_file_path = ?, " +
                       "bo_save_file = ?, nm_file_ext = ?, cd_file_type = ?, id_service = ?, " +
                       "id_org_file = ?, cn_content = ? WHERE id_file = ?";
@@ -135,21 +135,21 @@ public class ContentDAOImpl implements ContentDAO {
             }
             
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, content.getOriginalFileName());
-            pstmt.setString(2, content.getSavedFileName());
-            pstmt.setString(3, content.getFilePath());
+            pstmt.setString(1, contentDTO.getOriginalFileName());
+            pstmt.setString(2, contentDTO.getSavedFileName());
+            pstmt.setString(3, contentDTO.getFilePath());
             
             int paramIndex = 4;
-            if (content.getSaveFile() != null) {
-                pstmt.setBinaryStream(paramIndex++, new ByteArrayInputStream(content.getSaveFile()), content.getSaveFile().length);
+            if (contentDTO.getSaveFile() != null) {
+                pstmt.setBinaryStream(paramIndex++, new ByteArrayInputStream(contentDTO.getSaveFile()), contentDTO.getSaveFile().length);
             }
             
-            pstmt.setString(paramIndex++, content.getFileExtension());
-            pstmt.setString(paramIndex++, content.getFileType());
-            pstmt.setString(paramIndex++, content.getServiceId());
-            pstmt.setString(paramIndex++, content.getOrgFileId());
-            pstmt.setString(paramIndex++, content.getContent());
-            pstmt.setString(paramIndex, content.getFileId());
+            pstmt.setString(paramIndex++, contentDTO.getFileExtension());
+            pstmt.setString(paramIndex++, contentDTO.getFileType());
+            pstmt.setString(paramIndex++, contentDTO.getServiceId());
+            pstmt.setString(paramIndex++, contentDTO.getOrgFileId());
+            pstmt.setString(paramIndex++, contentDTO.getContent());
+            pstmt.setString(paramIndex, contentDTO.getFileId());
             
             int affectedRows = pstmt.executeUpdate();
             success = (affectedRows > 0);
@@ -208,30 +208,30 @@ public class ContentDAOImpl implements ContentDAO {
     }
     
     // ResultSet을 Content 객체로 변환하는 헬퍼 메서드
-    private Content resultSetToContent(ResultSet rs) throws SQLException {
-        Content content = new Content();
-        content.setFileId(rs.getString("ID_FILE"));
-        content.setOriginalFileName(rs.getString("NM_ORG_FILE"));
-        content.setSavedFileName(rs.getString("NM_SAVE_FILE"));
-        content.setFilePath(rs.getString("NM_FILE_PATH"));
+    private ContentDTO resultSetToContent(ResultSet rs) throws SQLException {
+        ContentDTO contentDTO = new ContentDTO();
+        contentDTO.setFileId(rs.getString("ID_FILE"));
+        contentDTO.setOriginalFileName(rs.getString("NM_ORG_FILE"));
+        contentDTO.setSavedFileName(rs.getString("NM_SAVE_FILE"));
+        contentDTO.setFilePath(rs.getString("NM_FILE_PATH"));
         
         // BLOB 데이터 읽기 (필요한 경우)
         Blob blob = rs.getBlob("BO_SAVE_FILE");
         if (blob != null) {
-            content.setSaveFile(blob.getBytes(1, (int) blob.length()));
+            contentDTO.setSaveFile(blob.getBytes(1, (int) blob.length()));
         }
         
-        content.setFileExtension(rs.getString("NM_FILE_EXT"));
-        content.setFileType(rs.getString("CD_FILE_TYPE"));
-        content.setSaveDate(rs.getDate("DA_SAVE"));
-        content.setHitCount(rs.getInt("CN_HIT"));
-        content.setServiceId(rs.getString("ID_SERVICE"));
-        content.setOrgFileId(rs.getString("ID_ORG_FILE"));
-        content.setContent(rs.getString("CN_CONTENT"));
-        content.setRegisterNo(rs.getString("NO_REGISTER"));
-        content.setFirstDate(rs.getDate("DA_FIRST_DATE"));
+        contentDTO.setFileExtension(rs.getString("NM_FILE_EXT"));
+        contentDTO.setFileType(rs.getString("CD_FILE_TYPE"));
+        contentDTO.setSaveDate(rs.getDate("DA_SAVE"));
+        contentDTO.setHitCount(rs.getInt("CN_HIT"));
+        contentDTO.setServiceId(rs.getString("ID_SERVICE"));
+        contentDTO.setOrgFileId(rs.getString("ID_ORG_FILE"));
+        contentDTO.setContent(rs.getString("CN_CONTENT"));
+        contentDTO.setRegisterNo(rs.getString("NO_REGISTER"));
+        contentDTO.setFirstDate(rs.getDate("DA_FIRST_DATE"));
         
-        return content;
+        return contentDTO;
     }
     
     // 리소스 정리 헬퍼 메서드

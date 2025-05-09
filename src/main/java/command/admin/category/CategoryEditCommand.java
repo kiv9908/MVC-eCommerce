@@ -3,11 +3,9 @@ package command.admin.category;
 import command.Command;
 import config.AppConfig;
 import domain.dto.CategoryDTO;
-import domain.model.User;
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.CategoryService;
-import domain.dao.CategoryDAO;
-import domain.dao.CategoryDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -196,7 +194,7 @@ public class CategoryEditCommand implements Command {
         // 등록자 ID 설정
         String userId = null;
         if (request.getSession().getAttribute("user") != null) {
-            userId = ((User) request.getSession().getAttribute("user")).getUserId();
+            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
         } else {
             userId = "admin"; // 기본값
         }

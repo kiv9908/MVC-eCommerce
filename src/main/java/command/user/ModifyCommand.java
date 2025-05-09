@@ -2,7 +2,8 @@ package command.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
+import exception.AuthenticationException;
 import exception.InvalidPasswordException;
 import lombok.extern.slf4j.Slf4j;
 import service.UserService;
@@ -48,7 +49,7 @@ public class ModifyCommand implements Command {
             return "redirect:" + request.getContextPath() + "/user/login";
         }
 
-        User sessionUser = (User) session.getAttribute("user");
+        UserDTO sessionUser = (UserDTO) session.getAttribute("user");
         String userId = sessionUser.getUserId();
 
         // 요청 파라미터에서 수정할 정보 추출
@@ -61,16 +62,16 @@ public class ModifyCommand implements Command {
 
         try {
             // 사용자 정보 조회
-            User user = userService.getUserByEmail(userId);
-            if (user == null) {
+            UserDTO userDTO = userService.getUserByEmail(userId);
+            if (userDTO == null) {
                 log.warn("회원정보 수정 실패 - 사용자를 찾을 수 없음: {}", userId);
                 request.setAttribute("errorMessage", "사용자 정보를 찾을 수 없습니다.");
                 return "/WEB-INF/views/user/modify.jsp";
             }
 
             // 기본 정보 업데이트
-            user.setUserName(userName);
-            user.setMobileNumber(mobileNumber);
+            userDTO.setUserName(userName);
+            userDTO.setMobileNumber(mobileNumber);
 
             // 비밀번호 변경 처리
             if (currentPassword != null && !currentPassword.isEmpty() &&
@@ -81,7 +82,7 @@ public class ModifyCommand implements Command {
                 log.info("비밀번호 변경 성공 - 사용자ID: {}", userId);
                 
                 // 비밀번호 변경 후 사용자 정보 다시 조회하여 세션 업데이트
-                user = userService.getUserByEmail(userId);
+                userDTO = userService.getUserByEmail(userId);
             } else if ((currentPassword != null && !currentPassword.isEmpty()) ||
                     (newPassword != null && !newPassword.isEmpty())) {
                 // 현재 비밀번호나 새 비밀번호 중 하나만 입력한 경우
@@ -93,13 +94,13 @@ public class ModifyCommand implements Command {
             // 기본 정보만 업데이트 (비밀번호 제외)
             if (currentPassword == null || currentPassword.isEmpty() ||
                 newPassword == null || newPassword.isEmpty()) {
-                user.setUserName(userName);
-                user.setMobileNumber(mobileNumber);
-                userService.modifyUser(user);
+                userDTO.setUserName(userName);
+                userDTO.setMobileNumber(mobileNumber);
+                userService.modifyUser(userDTO);
             }
 
             // 세션 정보 업데이트
-            session.setAttribute("user", user);
+            session.setAttribute("user", userDTO);
 
             log.info("회원정보 수정 성공 - 사용자ID: {}", userId);
 
@@ -107,7 +108,7 @@ public class ModifyCommand implements Command {
             request.setAttribute("successMessage", "회원정보가 성공적으로 수정되었습니다.");
             return "/WEB-INF/views/user/modify.jsp";
 
-        } catch (exception.AuthenticationException e) {
+        } catch (AuthenticationException e) {
             log.warn("비밀번호 변경 실패 - 현재 비밀번호 불일치: {}", e.getMessage());
             request.setAttribute("errorMessage", "현재 비밀번호가 일치하지 않습니다.");
             return "/WEB-INF/views/user/modify.jsp";

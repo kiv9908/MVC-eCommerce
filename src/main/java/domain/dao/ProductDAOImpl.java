@@ -1,6 +1,6 @@
 package domain.dao;
 
-import domain.model.Product;
+import domain.dto.ProductDTO;
 import util.DatabaseConnection;
 
 import java.sql.*;
@@ -14,8 +14,8 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public Product findByProductCode(String productCode) {
-        Product product = null;
+    public ProductDTO findByProductCode(String productCode) {
+        ProductDTO productDTO = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -29,19 +29,19 @@ public class ProductDAOImpl implements ProductDAO {
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                product = resultSetToProduct(rs);
+                productDTO = resultSetToProductDTO(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             closeResources(rs, pstmt, conn);
         }
-        return product;
+        return productDTO;
     }
 
     @Override
-    public List<Product> findByProductName(String productName) {
-        List<Product> products = new ArrayList<>();
+    public List<ProductDTO> findByProductName(String productName) {
+        List<ProductDTO> products = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -55,8 +55,8 @@ public class ProductDAOImpl implements ProductDAO {
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Product product = resultSetToProduct(rs);
-                products.add(product);
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -67,8 +67,8 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public List<Product> findAll() {
-        List<Product> products = new ArrayList<>();
+    public List<ProductDTO> findAll() {
+        List<ProductDTO> products = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -81,8 +81,8 @@ public class ProductDAOImpl implements ProductDAO {
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Product product = resultSetToProduct(rs);
-                products.add(product);
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -93,8 +93,8 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public List<Product> findAllOrderByPrice(boolean ascending) {
-        List<Product> products = new ArrayList<>();
+    public List<ProductDTO> findAllOrderByPrice(boolean ascending) {
+        List<ProductDTO> products = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -107,8 +107,8 @@ public class ProductDAOImpl implements ProductDAO {
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Product product = resultSetToProduct(rs);
-                products.add(product);
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -119,7 +119,7 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public void save(Product product) {
+    public void save(ProductDTO productDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -130,48 +130,48 @@ public class ProductDAOImpl implements ProductDAO {
                     "dt_start_date, dt_end_date, qt_customer_price, qt_sale_price, qt_stock, qt_delivery_fee, " +
                     "no_register, da_first_date) VALUES ('PT' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 7, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, product.getProductName());
-            pstmt.setString(2, product.getDetailExplain());
+            pstmt.setString(1, productDTO.getProductName());
+            pstmt.setString(2, productDTO.getDetailExplain());
             // fileId가 null일 수 있으므로 적절히 처리
-            if (product.getFileId() != null) {
+            if (productDTO.getFileId() != null) {
                 // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
-            String fileId = product.getFileId();
+            String fileId = productDTO.getFileId();
             if (fileId != null && fileId.length() > 30) {
                 // 30자로 잘라내기
                 fileId = fileId.substring(0, 30);
-                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + product.getFileId() + ", 저장된 값: " + fileId);
+                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + productDTO.getFileId() + ", 저장된 값: " + fileId);
             }
             pstmt.setString(3, fileId);
             } else {
                 pstmt.setNull(3, Types.VARCHAR);
             }
-            pstmt.setString(4, product.getStartDate());
-            pstmt.setString(5, product.getEndDate());
+            pstmt.setString(4, productDTO.getStartDate());
+            pstmt.setString(5, productDTO.getEndDate());
 
-            if (product.getCustomerPrice() != null) {
-                pstmt.setInt(6, product.getCustomerPrice());
+            if (productDTO.getCustomerPrice() != null) {
+                pstmt.setInt(6, productDTO.getCustomerPrice());
             } else {
                 pstmt.setNull(6, Types.NUMERIC);
             }
 
-            pstmt.setInt(7, product.getSalePrice());
+            pstmt.setInt(7, productDTO.getSalePrice());
 
-            if (product.getStock() != null) {
-                pstmt.setInt(8, product.getStock());
+            if (productDTO.getStock() != null) {
+                pstmt.setInt(8, productDTO.getStock());
             } else {
                 pstmt.setNull(8, Types.NUMERIC);
             }
 
-            if (product.getDeliveryFee() != null) {
-                pstmt.setInt(9, product.getDeliveryFee());
+            if (productDTO.getDeliveryFee() != null) {
+                pstmt.setInt(9, productDTO.getDeliveryFee());
             } else {
                 pstmt.setNull(9, Types.NUMERIC);
             }
 
-            pstmt.setString(10, product.getRegisterId());
+            pstmt.setString(10, productDTO.getRegisterId());
 
-            if (product.getFirstDate() != null) {
-                pstmt.setDate(11, new Date(product.getFirstDate().getTime()));
+            if (productDTO.getFirstDate() != null) {
+                pstmt.setDate(11, new Date(productDTO.getFirstDate().getTime()));
             } else {
                 pstmt.setNull(11, Types.DATE);
             }
@@ -185,7 +185,7 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public void modify(Product product) {
+    public void modify(ProductDTO productDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -197,40 +197,40 @@ public class ProductDAOImpl implements ProductDAO {
                     "qt_stock = ?, qt_delivery_fee = ? WHERE no_product = ?";
 
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, product.getProductName());
-            pstmt.setString(2, product.getDetailExplain());
+            pstmt.setString(1, productDTO.getProductName());
+            pstmt.setString(2, productDTO.getDetailExplain());
             // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
-            String fileId = product.getFileId();
+            String fileId = productDTO.getFileId();
             if (fileId != null && fileId.length() > 30) {
                 // 30자로 잘라내기
                 fileId = fileId.substring(0, 30);
-                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + product.getFileId() + ", 저장된 값: " + fileId);
+                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + productDTO.getFileId() + ", 저장된 값: " + fileId);
             }
             pstmt.setString(3, fileId);
-            pstmt.setString(4, product.getStartDate());
-            pstmt.setString(5, product.getEndDate());
+            pstmt.setString(4, productDTO.getStartDate());
+            pstmt.setString(5, productDTO.getEndDate());
 
-            if (product.getCustomerPrice() != null) {
-                pstmt.setInt(6, product.getCustomerPrice());
+            if (productDTO.getCustomerPrice() != null) {
+                pstmt.setInt(6, productDTO.getCustomerPrice());
             } else {
                 pstmt.setNull(6, Types.NUMERIC);
             }
 
-            pstmt.setInt(7, product.getSalePrice());
+            pstmt.setInt(7, productDTO.getSalePrice());
 
-            if (product.getStock() != null) {
-                pstmt.setInt(8, product.getStock());
+            if (productDTO.getStock() != null) {
+                pstmt.setInt(8, productDTO.getStock());
             } else {
                 pstmt.setNull(8, Types.NUMERIC);
             }
 
-            if (product.getDeliveryFee() != null) {
-                pstmt.setInt(9, product.getDeliveryFee());
+            if (productDTO.getDeliveryFee() != null) {
+                pstmt.setInt(9, productDTO.getDeliveryFee());
             } else {
                 pstmt.setNull(9, Types.NUMERIC);
             }
 
-            pstmt.setString(10, product.getProductCode());
+            pstmt.setString(10, productDTO.getProductCode());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -322,75 +322,38 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
 
-    private Product resultSetToProduct(ResultSet rs) throws SQLException {
-        Product product = new Product();
-        product.setProductCode(rs.getString("NO_PRODUCT"));
-        product.setProductName(rs.getString("NM_PRODUCT"));
-        product.setDetailExplain(rs.getString("NM_DETAIL_EXPLAIN"));
-        product.setFileId(rs.getString("ID_FILE"));
-        product.setStartDate(rs.getString("DT_START_DATE"));
-        product.setEndDate(rs.getString("DT_END_DATE"));
+    private ProductDTO resultSetToProductDTO(ResultSet rs) throws SQLException {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setProductCode(rs.getString("NO_PRODUCT"));
+        productDTO.setProductName(rs.getString("NM_PRODUCT"));
+        productDTO.setDetailExplain(rs.getString("NM_DETAIL_EXPLAIN"));
+        productDTO.setFileId(rs.getString("ID_FILE"));
+        productDTO.setStartDate(rs.getString("DT_START_DATE"));
+        productDTO.setEndDate(rs.getString("DT_END_DATE"));
 
         int customerPrice = rs.getInt("QT_CUSTOMER_PRICE");
         if (!rs.wasNull()) {
-            product.setCustomerPrice(customerPrice);
+            productDTO.setCustomerPrice(customerPrice);
         }
 
-        product.setSalePrice(rs.getInt("QT_SALE_PRICE"));
+        productDTO.setSalePrice(rs.getInt("QT_SALE_PRICE"));
 
         int stock = rs.getInt("QT_STOCK");
         if (!rs.wasNull()) {
-            product.setStock(stock);
+            productDTO.setStock(stock);
         }
 
         int deliveryFee = rs.getInt("QT_DELIVERY_FEE");
         if (!rs.wasNull()) {
-            product.setDeliveryFee(deliveryFee);
+            productDTO.setDeliveryFee(deliveryFee);
         }
 
-        product.setRegisterId(rs.getString("NO_REGISTER"));
-        product.setFirstDate(rs.getDate("DA_FIRST_DATE"));
+        productDTO.setRegisterId(rs.getString("NO_REGISTER"));
+        productDTO.setFirstDate(rs.getDate("DA_FIRST_DATE"));
 
-        return product;
-    }
-    
-    /**
-     * 상품 상태 계산 (재고에 따른 상태)
-     */
-    private String calculateStatus(Product product) {
-        // 재고 확인
-        if (product.getStock() != null && product.getStock() <= 0) {
-            return "품절";
-        }
-        
-        // 판매 기간에 따른 상태 확인
-        String currentDate = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-        
-        if (product.getStartDate() != null && product.getEndDate() != null) {
-            // 판매 종료일이 현재 날짜보다 과거인 경우 - 판매 중지
-            if (product.getEndDate().compareTo(currentDate) < 0) {
-                return "판매중지";
-            }
-        }
-        
-        // 위 조건 모두 해당하지 않으면 판매중
-        return "판매중";
-    }
-    
-    /**
-     * 판매 기간에 따른 상태 계산
-     */
-    private String calculateStatusFromDates(String startDate, String endDate) {
-        String currentDate = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-        
-        if (endDate != null && endDate.compareTo(currentDate) < 0) {
-            return "판매중지";
-        }
-        
-        return "판매중";
+        return productDTO;
     }
 
-    // closeResources 메서드 수정 - Connection 반환 추가
     private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection conn) {
         try {
             if (rs != null) rs.close();

@@ -4,6 +4,7 @@ import command.Command;
 import config.AppConfig;
 import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
+import service.FileService;
 import service.ProductService;
 import domain.dao.ProductDAO;
 import domain.dao.ProductDAOImpl;
@@ -16,17 +17,26 @@ import java.util.List;
 
 @Slf4j
 public class ProductListCommand implements Command {
-    private ProductService productService;
+    private final ProductService productService;
+    private final FileService fileService;
 
     public ProductListCommand() {
-        // 서비스 초기화
-        ProductDAO productDAO = new ProductDAOImpl();
-        this.productService = new ProductService(productDAO);
+        // AppConfig에서 서비스 가져오기
+        AppConfig appConfig = AppConfig.getInstance();
+        this.productService = appConfig.getProductService();
+        this.fileService = appConfig.getFileService();
+
+        // fileService가 null이면 로그 남기기
+        if (this.fileService == null) {
+            log.error("FileService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
+        }
     }
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         log.debug("상품 목록 조회 실행");
+
+        // FileService 초기화 코드 제거 (이미 생성자에서 초기화)
 
         try {
             // 정렬 옵션 처리

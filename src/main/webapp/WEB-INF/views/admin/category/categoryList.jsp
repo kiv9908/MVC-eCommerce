@@ -62,7 +62,6 @@
             <tr>
               <th>ID</th>
               <th>이름</th>
-              <th>설명</th>
               <th>상위 카테고리</th>
               <th>전체 카테고리</th>
               <th>순서</th>
@@ -75,16 +74,6 @@
             <tr>
               <td>${category.id}</td>
               <td>${category.name}</td>
-              <td>
-                <c:choose>
-                  <c:when test="${not empty category.description}">
-                    ${category.description}
-                  </c:when>
-                  <c:otherwise>
-                    <span class="text-muted">-</span>
-                  </c:otherwise>
-                </c:choose>
-              </td>
               <td>
                 <c:choose>
                   <c:when test="${category.parentId != null}">

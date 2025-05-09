@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Getter
 public class AppConfig implements Serializable {
     private static final long serialVersionUID = 1L;
-    
+
     // volatile 키워드 추가로 멀티스레드 환경에서 변수의 가시성 보장
     private static volatile AppConfig instance;
 
@@ -18,12 +18,17 @@ public class AppConfig implements Serializable {
     private final ProductDAO productDAO;
     private final CategoryDAO categoryDAO;
     private final MappingDAO mappingDAO;
+    private final ContentDAO contentDAO;
 
     private final UserService userService;
     private final ProductService productService;
     private final AuthService authService;
     private final MappingService mappingService;
     private final CategoryService categoryService;
+
+    // FileService 필드 추가
+    private FileService fileService;
+
 
     /**
      * 생성자를 private으로 선언하여 외부에서 인스턴스 생성 방지
@@ -34,6 +39,7 @@ public class AppConfig implements Serializable {
         this.productDAO = new ProductDAOImpl();
         this.categoryDAO = new CategoryDAOImpl();
         this.mappingDAO = new MappingDAOImpl();
+        this.contentDAO = new ContentDAOImpl();
 
         // 서비스 계층 초기화 및 의존성 주입
         this.userService = new UserService(userDAO);
@@ -66,6 +72,17 @@ public class AppConfig implements Serializable {
      */
     protected Object readResolve() {
         return getInstance();
+    }
+
+    /**
+     * FileService 초기화 메서드 (웹 애플리케이션 시작 시 호출)
+     * @param uploadPath 파일 업로드 경로
+     * @param useDbStorage DB 저장소 사용 여부
+     */
+    public void initFileService(String uploadPath, boolean useDbStorage) {
+        if (this.fileService == null) {
+            this.fileService = new FileService(uploadPath, useDbStorage);
+        }
     }
 
     /**

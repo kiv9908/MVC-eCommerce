@@ -2,7 +2,7 @@ package command.admin.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.UserService;
 
@@ -26,7 +26,7 @@ public class AdminUserListCommand implements Command {
         log.debug("회원 목록 조회 실행");
 
         // 사용자 목록 조회
-        List<User> users = userService.getAllUsers();
+        List<UserDTO> users = userService.getAllUsers();
         request.setAttribute("users", users);
 
         return "/WEB-INF/views/admin/user/userList.jsp";

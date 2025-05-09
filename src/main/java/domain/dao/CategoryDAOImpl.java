@@ -1,24 +1,21 @@
 package domain.dao;
 
-import domain.model.Category;
+import domain.dto.CategoryDTO;
 import lombok.extern.slf4j.Slf4j;
 import util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 @Slf4j
 public class CategoryDAOImpl implements CategoryDAO {
     
     
     @Override
-    public List<Category> findAll() {
-        List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * FROM tb_category WHERE yn_delete = 'N' ORDER BY cn_level, cn_order";
+    public List<CategoryDTO> findAll() {
+        List<CategoryDTO> categories = new ArrayList<>();
+        String sql = "SELECT * FROM tb_category WHERE yn_delete = 'N' ORDER BY cn_order, nm_full_category";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -35,7 +32,7 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public Category findById(int nbCategory) {
+    public CategoryDTO findById(int nbCategory) {
         String sql = "SELECT * FROM tb_category WHERE nb_category = ? AND yn_delete = 'N'";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -56,8 +53,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public List<Category> findByParentId(int nbParentCategory) {
-        List<Category> categories = new ArrayList<>();
+    public List<CategoryDTO> findByParentId(int nbParentCategory) {
+        List<CategoryDTO> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE nb_parent_category = ? AND yn_delete = 'N' ORDER BY cn_order";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -78,30 +75,9 @@ public class CategoryDAOImpl implements CategoryDAO {
         return categories;
     }
 
-    @Override
-    public List<Category> findByLevel(int cnLevel) {
-        List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * FROM tb_category WHERE cn_level = ? AND yn_delete = 'N' ORDER BY cn_order";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, cnLevel);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    categories.add(mapResultSetToCategory(rs));
-                }
-            }
-        } catch (SQLException e) {
-            log.error("레벨별 카테고리 조회 중 오류 발생: " + cnLevel, e);
-        }
-
-        return categories;
-    }
 
     @Override
-    public int save(Category category) {
+    public int save(CategoryDTO categoryDTO) {
         String sql = "INSERT INTO tb_category (nb_category, nb_parent_category, nm_category, nm_full_category, nm_explain, cn_level, cn_order, yn_use, yn_delete, no_register, da_first_date) " +
                      "VALUES (SEQ_TB_CATEGORY.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, 'N', ?, SYSDATE)";
 
@@ -109,40 +85,40 @@ public class CategoryDAOImpl implements CategoryDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // nb_parent_category
-            if (category.getNbParentCategory() != null) {
-                pstmt.setInt(1, category.getNbParentCategory());
+            if (categoryDTO.getParentId() != null) {
+                pstmt.setInt(1, categoryDTO.getParentId());
             } else {
                 pstmt.setNull(1, Types.INTEGER);
             }
 
             // nm_category
-            pstmt.setString(2, category.getNmCategory());
+            pstmt.setString(2, categoryDTO.getName());
 
             // nm_full_category
-            pstmt.setString(3, category.getNmFullCategory());
+            pstmt.setString(3, categoryDTO.getFullName());
 
             // nm_explain
-            pstmt.setString(4, category.getNmExplain());
+            pstmt.setString(4, categoryDTO.getDescription());
 
             // cn_level
-            if (category.getCnLevel() != null) {
-                pstmt.setInt(5, category.getCnLevel());
+            if (categoryDTO.getLevel() != null) {
+                pstmt.setInt(5, categoryDTO.getLevel());
             } else {
                 pstmt.setNull(5, Types.INTEGER);
             }
 
             // cn_order
-            if (category.getCnOrder() != null) {
-                pstmt.setInt(6, category.getCnOrder());
+            if (categoryDTO.getOrder() != null) {
+                pstmt.setInt(6, categoryDTO.getOrder());
             } else {
                 pstmt.setNull(6, Types.INTEGER);
             }
 
             // yn_use
-            pstmt.setString(7, category.getYnUse());
+            pstmt.setString(7, categoryDTO.getUseYn());
 
             // no_register
-            pstmt.setString(8, category.getNoRegister());
+            pstmt.setString(8, categoryDTO.getRegisterId());
 
             return pstmt.executeUpdate();
 
@@ -153,36 +129,36 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public boolean update(Category category) {
+    public boolean update(CategoryDTO categoryDTO) {
         String sql = "UPDATE tb_category SET nm_category = ?, nm_full_category = ?, nm_explain = ?, " +
                      "cn_level = ?, cn_order = ?, yn_use = ? WHERE nb_category = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, category.getNmCategory());
-            pstmt.setString(2, category.getNmFullCategory());
-            pstmt.setString(3, category.getNmExplain());
+            pstmt.setString(1, categoryDTO.getName());
+            pstmt.setString(2, categoryDTO.getFullName());
+            pstmt.setString(3, categoryDTO.getDescription());
 
-            if (category.getCnLevel() != null) {
-                pstmt.setInt(4, category.getCnLevel());
+            if (categoryDTO.getLevel() != null) {
+                pstmt.setInt(4, categoryDTO.getLevel());
             } else {
                 pstmt.setNull(4, Types.INTEGER);
             }
 
-            if (category.getCnOrder() != null) {
-                pstmt.setInt(5, category.getCnOrder());
+            if (categoryDTO.getOrder() != null) {
+                pstmt.setInt(5, categoryDTO.getOrder());
             } else {
                 pstmt.setNull(5, Types.INTEGER);
             }
 
-            pstmt.setString(6, category.getYnUse());
-            pstmt.setInt(7, category.getNbCategory());
+            pstmt.setString(6, categoryDTO.getUseYn());
+            pstmt.setInt(7, categoryDTO.getId());
 
             return pstmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            log.error("카테고리 수정 중 오류 발생: {}", category.getNbCategory(), e);
+            log.error("카테고리 수정 중 오류 발생: {}", categoryDTO.getId(), e);
         }
 
         return false;
@@ -245,8 +221,8 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public List<Category> searchByName(String nmCategory) {
-        List<Category> categories = new ArrayList<>();
+    public List<CategoryDTO> searchByName(String nmCategory) {
+        List<CategoryDTO> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE nm_category LIKE ? AND yn_delete = 'N' ORDER BY cn_level, cn_order";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -266,81 +242,37 @@ public class CategoryDAOImpl implements CategoryDAO {
         return categories;
     }
 
-    @Override
-    public List<Category> findAllActive() {
-        List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * FROM tb_category WHERE yn_use = 'Y' AND yn_delete = 'N' ORDER BY cn_level, cn_order";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            
-            while (rs.next()) {
-                categories.add(mapResultSetToCategory(rs));
-            }
-        } catch (SQLException e) {
-            log.error("활성화된 카테고리 조회 중 오류 발생", e);
-        }
-        
-        return categories;
-    }
-    
-    @Override
-    public List<Category> findAllHierarchical() {
-        // 전체 카테고리를 가져온 후 계층 구조로 정리
-        List<Category> allCategories = findAll();
-        List<Category> topLevelCategories = new ArrayList<>();
-        Map<Integer, List<Category>> categoryMap = new HashMap<>();
-        
-        // 카테고리를 레벨별로 분류
-        for (Category category : allCategories) {
-            if (category.getNbParentCategory() == null || category.getNbParentCategory() == 0) {
-                // 상위 카테고리가 없는 경우 (대분류)
-                topLevelCategories.add(category);
-            } else {
-                // 상위 카테고리가 있는 경우 (중분류, 소분류)
-                int parentId = category.getNbParentCategory();
-                if (!categoryMap.containsKey(parentId)) {
-                    categoryMap.put(parentId, new ArrayList<>());
-                }
-                categoryMap.get(parentId).add(category);
-            }
-        }
-        
-        // 대분류만 반환 (클라이언트에서 필요할 때 하위 카테고리를 요청하도록)
-        return topLevelCategories;
-    }
     
     // ResultSet에서 Category 객체로 매핑하는 유틸리티 메서드
-    private Category mapResultSetToCategory(ResultSet rs) throws SQLException {
-        Category category = new Category();
+    private CategoryDTO mapResultSetToCategory(ResultSet rs) throws SQLException {
+        CategoryDTO categoryDTO = new CategoryDTO();
         
-        category.setNbCategory(rs.getInt("nb_category"));
+        categoryDTO.setId(rs.getInt("nb_category"));
         
         int parentCategory = rs.getInt("nb_parent_category");
         if (!rs.wasNull()) {
-            category.setNbParentCategory(parentCategory);
+            categoryDTO.setParentId(parentCategory);
         }
         
-        category.setNmCategory(rs.getString("nm_category"));
-        category.setNmFullCategory(rs.getString("nm_full_category"));
-        category.setNmExplain(rs.getString("nm_explain"));
+        categoryDTO.setName(rs.getString("nm_category"));
+        categoryDTO.setFullName(rs.getString("nm_full_category"));
+        categoryDTO.setDescription(rs.getString("nm_explain"));
         
         int cnLevel = rs.getInt("cn_level");
         if (!rs.wasNull()) {
-            category.setCnLevel(cnLevel);
+            categoryDTO.setLevel(cnLevel);
         }
         
         int cnOrder = rs.getInt("cn_order");
         if (!rs.wasNull()) {
-            category.setCnOrder(cnOrder);
+            categoryDTO.setOrder(cnOrder);
         }
         
-        category.setYnUse(rs.getString("yn_use"));
-        category.setYnDelete(rs.getString("yn_delete"));
-        category.setNoRegister(rs.getString("no_register"));
-        category.setDaFirstDate(rs.getTimestamp("da_first_date"));
+        categoryDTO.setUseYn(rs.getString("yn_use"));
+        categoryDTO.setDeleteYn(rs.getString("yn_delete"));
+        categoryDTO.setRegisterId(rs.getString("no_register"));
+        categoryDTO.setDaFirstDate(rs.getTimestamp("da_first_date"));
         
-        return category;
+        return categoryDTO;
     }
 }

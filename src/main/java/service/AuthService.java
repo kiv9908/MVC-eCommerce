@@ -1,7 +1,7 @@
 package service;
 
-import domain.model.User;
 import domain.dao.UserDAO;
+import domain.dto.UserDTO;
 
 public class AuthService {
 
@@ -18,9 +18,9 @@ public class AuthService {
      * @return 인증된 사용자 객체
      * @throws Exception 인증 실패시 예외 발생
      */
-    public User login(String email, String password) throws Exception {
+    public UserDTO login(String email, String password) throws Exception {
         // 이메일로 사용자 조회
-        User user = userDAO.findByUserId(email);
+        UserDTO user = userDAO.findByUserId(email);
         
         // 사용자가 존재하지 않는 경우
         if (user == null) {
@@ -47,10 +47,10 @@ public class AuthService {
     
     /**
      * 현재 사용자가 관리자인지 확인
-     * @param user 확인할 사용자 객체
+     * @param userDTO 확인할 사용자 객체
      * @return 관리자 여부
      */
-    public boolean isAdmin(User user) {
-        return user != null && "20".equals(user.getUserType());
+    public boolean isAdmin(UserDTO userDTO) {
+        return userDTO != null && "20".equals(userDTO.getUserType());
     }
 }

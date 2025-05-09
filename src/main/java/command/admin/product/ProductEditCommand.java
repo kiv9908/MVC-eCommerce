@@ -1,48 +1,40 @@
 package command.admin.product;
 
 import command.Command;
-import domain.dao.ContentDAO;
-import domain.dao.ContentDAOImpl;
+import config.AppConfig;
 import domain.dto.ProductDTO;
-import domain.model.Content;
-import domain.model.User;
+
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
 import service.ProductService;
-import domain.dao.ProductDAO;
-import domain.dao.ProductDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
-import java.util.Date;
 
 @Slf4j
 public class ProductEditCommand implements Command {
-    private ProductService productService;
-    private FileService fileService;
-    private boolean useDbStorage = true;  // BLOB 저장 방식 활성화
+    private final ProductService productService;
+    private final FileService fileService;
 
     public ProductEditCommand() {
-        // DAO와 서비스 초기화
-        ProductDAO productDAO = new ProductDAOImpl();
-        productService = new ProductService(productDAO);
+        // AppConfig에서 서비스 가져오기
+        AppConfig appConfig = AppConfig.getInstance();
+        this.productService = appConfig.getProductService();
+        this.fileService = appConfig.getFileService();
 
-        // 파일 서비스 초기화 - ServletContext에서 업로드 경로를 가져올 수 없으므로, 생성자에서는 null로 초기화
-        ContentDAO contentDAO = new ContentDAOImpl();
-        fileService = null; // execute 메소드에서 초기화 예정
+        // fileService가 null이면 로그 남기기
+        if (this.fileService == null) {
+            log.error("FileService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
+        }
     }
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // 파일 서비스가 아직 초기화되지 않은 경우 초기화
-        if (fileService == null) {
-            String uploadPath = request.getServletContext().getRealPath("/uploads");
-            ContentDAO contentDAO = new ContentDAOImpl();
-            fileService = new FileService(contentDAO, uploadPath, useDbStorage);
-        }
+        // fileService 초기화 코드 제거 (생성자에서 이미 초기화됨)
 
         String method = request.getMethod();
 
@@ -225,7 +217,7 @@ public class ProductEditCommand implements Command {
         // 등록자 ID 설정
         String userId = null;
         if (request.getSession().getAttribute("user") != null) {
-            userId = ((User) request.getSession().getAttribute("user")).getUserId();
+            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
         } else {
             userId = "admin"; // 기본값
         }

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="domain.model.User" %>
+<%@ page import="domain.dto.UserDTO" %>
 <!doctype html>
 <html>
 <head>
@@ -32,7 +32,7 @@
         
         <% 
             // 세션에서 사용자 정보 가져오기
-            User user = (User) session.getAttribute("user");
+            UserDTO user = (UserDTO) session.getAttribute("user");
             if (user == null) {
                 response.sendRedirect(request.getContextPath() + "/user/login");
                 return;

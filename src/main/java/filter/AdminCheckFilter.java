@@ -1,6 +1,6 @@
 package filter;
 
-import domain.model.User;
+import domain.dto.UserDTO;
 
 import java.io.IOException;
 import javax.servlet.Filter;
@@ -32,7 +32,7 @@ public class AdminCheckFilter implements Filter {
 
         // 세션이 존재하고 사용자가 로그인되어 있는지 확인
         if (session != null && session.getAttribute("user") != null) {
-            User user = (User) session.getAttribute("user");
+            UserDTO userDTO = (UserDTO) session.getAttribute("user");
 
             // 또는 세션에 isAdmin 속성이 이미 설정되어 있는지 확인
             if (session.getAttribute("isAdmin") != null) {

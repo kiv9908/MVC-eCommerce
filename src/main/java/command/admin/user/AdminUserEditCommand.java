@@ -2,7 +2,7 @@ package command.admin.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.UserService;
 
@@ -51,8 +51,8 @@ public class AdminUserEditCommand implements Command {
         }
 
         // 사용자 정보 조회
-        User user = userService.getUserByEmail(userId);
-        if (user == null) {
+        UserDTO userDTO = userService.getUserByEmail(userId);
+        if (userDTO == null) {
             request.setAttribute("message", "해당 사용자를 찾을 수 없습니다.");
             request.setAttribute("messageType", "error");
 
@@ -60,7 +60,7 @@ public class AdminUserEditCommand implements Command {
             return "/admin/user/list";
         }
 
-        request.setAttribute("user", user);
+        request.setAttribute("user", userDTO);
         return "/WEB-INF/views/admin/user/userEdit.jsp";
     }
 
@@ -78,8 +78,8 @@ public class AdminUserEditCommand implements Command {
         }
 
         // 사용자 조회
-        User user = userService.getUserByEmail(userId);
-        if (user == null) {
+        UserDTO userDTO = userService.getUserByEmail(userId);
+        if (userDTO == null) {
             request.setAttribute("message", "사용자를 찾을 수 없습니다.");
             request.setAttribute("messageType", "error");
             return "/admin/user/list";
@@ -93,18 +93,18 @@ public class AdminUserEditCommand implements Command {
             String status = request.getParameter("status");
 
             if (userName != null && !userName.trim().isEmpty()) {
-                user.setUserName(userName);
+                userDTO.setUserName(userName);
             }
 
             if (mobileNumber != null && !mobileNumber.trim().isEmpty()) {
-                user.setMobileNumber(mobileNumber);
+                userDTO.setMobileNumber(mobileNumber);
             }
 
             if (status != null) {
-                user.setStatus(status);
+                userDTO.setStatus(status);
             }
 
-            userService.modifyUser(user);
+            userService.modifyUser(userDTO);
 
             // 회원 권한 변경
             if (userType != null && (userType.equals("10") || userType.equals("20"))) {
@@ -123,7 +123,7 @@ public class AdminUserEditCommand implements Command {
             request.setAttribute("messageType", "error");
 
             // 사용자 조회해서 폼에 다시 보여주기
-            request.setAttribute("user", user);
+            request.setAttribute("user", userDTO);
             return "/WEB-INF/views/admin/user/userEdit.jsp";
         }
     }

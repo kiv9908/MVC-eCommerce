@@ -12,7 +12,7 @@
       <hr />
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
-          <a href="${pageContext.request.contextPath}/admin/modify"
+          <a href="${pageContext.request.contextPath}/admin/user/list"
              class="nav-link ${pageId == 'user' ? 'active' : 'text-white'}">
             <i class="fas fa-users me-2"></i>
             사용자 관리
