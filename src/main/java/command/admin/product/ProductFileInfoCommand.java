@@ -1,9 +1,8 @@
 package command.admin.product;
 
 import command.Command;
-import domain.dao.ContentDAO;
-import domain.dao.ContentDAOImpl;
-import domain.model.Content;
+import config.AppConfig;
+import domain.dto.ContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import service.FileService;
@@ -16,24 +15,21 @@ import java.io.PrintWriter;
 
 @Slf4j
 public class ProductFileInfoCommand implements Command {
-    private FileService fileService;
-    private boolean useDbStorage = true;
+    private final FileService fileService;
 
     public ProductFileInfoCommand() {
-        // 파일 서비스 초기화 - ServletContext에서 업로드 경로를 가져올 수 없으므로, 생성자에서는 null로 초기화
-        ContentDAO contentDAO = new ContentDAOImpl();
-        fileService = null; // execute 메소드에서 초기화 예정
+        // AppConfig에서 서비스 가져오기
+        AppConfig appConfig = AppConfig.getInstance();
+        this.fileService = appConfig.getFileService();
+
+        // fileService가 null이면 로그 남기기
+        if (this.fileService == null) {
+            log.error("FileService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
+        }
     }
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // 파일 서비스가 아직 초기화되지 않은 경우 초기화
-        if (fileService == null) {
-            String uploadPath = request.getServletContext().getRealPath("/uploads");
-            ContentDAO contentDAO = new ContentDAOImpl();
-            fileService = new FileService(contentDAO, uploadPath, useDbStorage);
-        }
-
         String fileId = request.getParameter("fileId");
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -48,9 +44,9 @@ public class ProductFileInfoCommand implements Command {
             }
 
             // 파일 정보 조회
-            Content content = fileService.getFileById(fileId);
+            ContentDTO contentDTO = fileService.getFileById(fileId);
 
-            if (content == null) {
+            if (contentDTO == null) {
                 // 파일을 찾을 수 없는 경우
                 out.print("{\"error\": \"파일을 찾을 수 없습니다.\"}");
                 return null;
@@ -58,10 +54,10 @@ public class ProductFileInfoCommand implements Command {
 
             // JSON 응답 생성
             JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("fileId", content.getFileId());
-            jsonResponse.put("originalFileName", content.getOriginalFileName());
-            jsonResponse.put("fileExtension", content.getFileExtension());
-            jsonResponse.put("fileType", content.getFileType());
+            jsonResponse.put("fileId", contentDTO.getFileId());
+            jsonResponse.put("originalFileName", contentDTO.getOriginalFileName());
+            jsonResponse.put("fileExtension", contentDTO.getFileExtension());
+            jsonResponse.put("fileType", contentDTO.getFileType());
 
             // JSON 응답 전송
             out.print(jsonResponse.toJSONString());

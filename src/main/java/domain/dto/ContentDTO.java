@@ -11,7 +11,7 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Content {
+public class ContentDTO {
     private String fileId;          // id_file - VARCHAR2(64)
     private String originalFileName; // nm_org_file - VARCHAR2(200)
     private String savedFileName;    // nm_save_file - VARCHAR2(200)
