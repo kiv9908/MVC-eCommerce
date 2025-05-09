@@ -1,6 +1,6 @@
 package domain.dao;
 
-import domain.model.User;
+import domain.dto.UserDTO;
 import util.DatabaseConnection;
 
 import java.sql.Connection;
@@ -17,8 +17,8 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User findByUserId(String email) {
-        User user = null;
+    public UserDTO findByUserId(String email) {
+        UserDTO userDTO = null;
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -33,7 +33,7 @@ public class UserDAOImpl implements UserDAO {
             rs = pstmt.executeQuery();
 
             if(rs.next()){
-                user = resultSetToUser(rs);
+                userDTO = resultSetToUser(rs);
             }
 
         } catch (SQLException e) {
@@ -42,7 +42,7 @@ public class UserDAOImpl implements UserDAO {
             // 리소스 해제 및 연결 반환
             closeResources(rs, pstmt, conn);
         }
-        return user;
+        return userDTO;
     }
 
     // closeResources 메서드 수정 - Connection 반환 추가
@@ -56,24 +56,24 @@ public class UserDAOImpl implements UserDAO {
         }
     }
 
-    private User resultSetToUser(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setUserId(rs.getString("ID_USER"));
-        user.setUserName(rs.getString("NM_USER"));
-        user.setPassword(rs.getString("NM_PASWD"));
-        user.setEncPassword(rs.getString("NM_ENC_PASWD"));
-        user.setMobileNumber(rs.getString("NO_MOBILE"));
-        user.setEmail(rs.getString("NM_EMAIL"));
-        user.setStatus(rs.getString("ST_STATUS"));
-        user.setUserType(rs.getString("CD_USER_TYPE"));
-        user.setRegisterBy(rs.getString("NO_REGISTER"));
-        user.setFirstLoginDate(rs.getDate("DA_FIRST_DATE"));
-        return user;
+    private UserDTO resultSetToUser(ResultSet rs) throws SQLException {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(rs.getString("ID_USER"));
+        userDTO.setUserName(rs.getString("NM_USER"));
+        userDTO.setPassword(rs.getString("NM_PASWD"));
+        userDTO.setEncPassword(rs.getString("NM_ENC_PASWD"));
+        userDTO.setMobileNumber(rs.getString("NO_MOBILE"));
+        userDTO.setEmail(rs.getString("NM_EMAIL"));
+        userDTO.setStatus(rs.getString("ST_STATUS"));
+        userDTO.setUserType(rs.getString("CD_USER_TYPE"));
+        userDTO.setRegisterBy(rs.getString("NO_REGISTER"));
+        userDTO.setFirstLoginDate(rs.getDate("DA_FIRST_DATE"));
+        return userDTO;
     }
 
 
     @Override
-    public void save(User user) {
+    public void save(UserDTO userDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -84,18 +84,18 @@ public class UserDAOImpl implements UserDAO {
             String sql = "INSERT INTO TB_USER (id_user, nm_user, nm_paswd, nm_enc_paswd, no_mobile, nm_email, st_status, cd_user_type, no_register, da_first_date) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, user.getUserId());
-            pstmt.setString(2, user.getUserName());
-            pstmt.setString(3, user.getPassword());
-            pstmt.setString(4, user.getEncPassword() != null ? user.getEncPassword() : ""); // 암호화된 비밀번호가 null인 경우 빈 문자열로 처리
-            pstmt.setString(5, user.getMobileNumber());
-            pstmt.setString(6, user.getEmail());
-            pstmt.setString(7, user.getStatus());
-            pstmt.setString(8, user.getUserType());
-            pstmt.setString(9, user.getRegisterBy());
+            pstmt.setString(1, userDTO.getUserId());
+            pstmt.setString(2, userDTO.getUserName());
+            pstmt.setString(3, userDTO.getPassword());
+            pstmt.setString(4, userDTO.getEncPassword() != null ? userDTO.getEncPassword() : ""); // 암호화된 비밀번호가 null인 경우 빈 문자열로 처리
+            pstmt.setString(5, userDTO.getMobileNumber());
+            pstmt.setString(6, userDTO.getEmail());
+            pstmt.setString(7, userDTO.getStatus());
+            pstmt.setString(8, userDTO.getUserType());
+            pstmt.setString(9, userDTO.getRegisterBy());
 
-            if(user.getFirstLoginDate() != null){
-                pstmt.setDate(10, new java.sql.Date(user.getFirstLoginDate().getTime()));
+            if(userDTO.getFirstLoginDate() != null){
+                pstmt.setDate(10, new java.sql.Date(userDTO.getFirstLoginDate().getTime()));
             }else {
                 pstmt.setDate(10, null);
             }
@@ -113,7 +113,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public void modify(User user) {
+    public void modify(UserDTO userDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -122,11 +122,11 @@ public class UserDAOImpl implements UserDAO {
 
             String sql = "UPDATE TB_USER SET nm_user = ?, no_mobile = ?, st_status = ?, NM_PASWD = ? WHERE nm_email = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, user.getUserName());
-            pstmt.setString(2, user.getMobileNumber());
-            pstmt.setString(3, user.getStatus());
-            pstmt.setString(4, user.getPassword());
-            pstmt.setString(5, user.getEmail());
+            pstmt.setString(1, userDTO.getUserName());
+            pstmt.setString(2, userDTO.getMobileNumber());
+            pstmt.setString(3, userDTO.getStatus());
+            pstmt.setString(4, userDTO.getPassword());
+            pstmt.setString(5, userDTO.getEmail());
 
             pstmt.executeUpdate();
         }
@@ -139,8 +139,8 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public List<User> findAll() {
-        List<User> users = new ArrayList<User>();
+    public List<UserDTO> findAll() {
+        List<UserDTO> users = new ArrayList<>();
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -153,8 +153,8 @@ public class UserDAOImpl implements UserDAO {
             rs = pstmt.executeQuery();
 
             while(rs.next()){
-                User user = resultSetToUser(rs);
-                users.add(user);
+                UserDTO userDTO = resultSetToUser(rs);
+                users.add(userDTO);
             }
         }catch (SQLException e) {
             e.printStackTrace();
@@ -190,7 +190,7 @@ public class UserDAOImpl implements UserDAO {
     }
     
     @Override
-    public void modifyUserRole(User user) {
+    public void modifyUserRole(UserDTO userDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
 
@@ -199,8 +199,8 @@ public class UserDAOImpl implements UserDAO {
             
             String sql = "UPDATE TB_USER SET cd_user_type = ? WHERE nm_email = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, user.getUserType());
-            pstmt.setString(2, user.getEmail());
+            pstmt.setString(1, userDTO.getUserType());
+            pstmt.setString(2, userDTO.getEmail());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {

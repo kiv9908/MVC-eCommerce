@@ -1,3 +1,4 @@
+<%@ page import="domain.dto.UserDTO" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!-- 네비게이션 바 -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
@@ -15,7 +16,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/user/modify">내 정보</a>
                     </li>
-                    <% if(session.getAttribute("user") != null && ((domain.model.User)session.getAttribute("user")).getUserType().equals("20")) { %>
+                    <% if(session.getAttribute("user") != null && ((UserDTO)session.getAttribute("user")).getUserType().equals("20")) { %>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/admin/user/list">관리자 페이지</a>
                     </li>

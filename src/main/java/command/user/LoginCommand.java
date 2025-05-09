@@ -2,7 +2,7 @@ package command.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.AuthService;
 
@@ -59,19 +59,19 @@ public class LoginCommand implements Command {
 
         try {
             // 로그인 시도
-            User user = authService.login(email, password);
+            UserDTO userDTO = authService.login(email, password);
 
-            if (user != null) {
+            if (userDTO != null) {
                 // 로그인 성공, 세션에 사용자 정보 저장
                 HttpSession session = request.getSession();
-                session.setAttribute("user", user);
+                session.setAttribute("user", userDTO);
                 session.setAttribute("isLoggedIn", true);
 
                 // 관리자 여부 확인하여 세션에 저장
-                boolean isAdmin = "20".equals(user.getUserType());
+                boolean isAdmin = "20".equals(userDTO.getUserType());
                 session.setAttribute("isAdmin", isAdmin);
 
-                log.info("로그인 성공 - 사용자: {}, 관리자: {}", user.getUserId(), isAdmin);
+                log.info("로그인 성공 - 사용자: {}, 관리자: {}", userDTO.getUserId(), isAdmin);
 
                 // 로그인 성공 후 메인 페이지로 리다이렉트
                 return "redirect:" + request.getContextPath() + "/";

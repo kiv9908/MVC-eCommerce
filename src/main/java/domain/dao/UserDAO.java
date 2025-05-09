@@ -1,6 +1,6 @@
 package domain.dao;
 
-import domain.model.User;
+import domain.dto.UserDTO;
 
 import java.util.List;
 
@@ -10,25 +10,25 @@ public interface UserDAO {
      * @param email 사용자 이메일
      * @return 사용자 객체, 없으면 null
      */
-    User findByUserId(String email);
+    UserDTO findByUserId(String email);
 
     /**
      * 신규 사용자 저장
-     * @param user 저장할 사용자 객체
+     * @param userDTO 저장할 사용자 객체
      */
-    void save(User user);
+    void save(UserDTO userDTO);
 
     /**
      * 사용자 정보 수정
-     * @param user 수정할 사용자 객체
+     * @param userDTO 수정할 사용자 객체
      */
-    void modify(User user);
+    void modify(UserDTO userDTO);
 
     /**
      * 모든 사용자 조회
      * @return 사용자 목록
      */
-    List<User> findAll();
+    List<UserDTO> findAll();
 
     /**
      * 사용자 삭제 (또는 상태 변경)
@@ -39,7 +39,7 @@ public interface UserDAO {
     
     /**
      * 사용자 권한 변경
-     * @param user 권한을 변경할 사용자 객체
+     * @param userDTO 권한을 변경할 사용자 객체
      */
-    void modifyUserRole(User user);
+    void modifyUserRole(UserDTO userDTO);
 }

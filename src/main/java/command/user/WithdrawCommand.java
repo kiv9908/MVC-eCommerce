@@ -2,7 +2,7 @@ package command.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.AuthService;
 import service.UserService;
@@ -49,7 +49,7 @@ public class WithdrawCommand implements Command {
             return "redirect:" + request.getContextPath() + "/user/login";
         }
 
-        User sessionUser = (User) session.getAttribute("user");
+        UserDTO sessionUser = (UserDTO) session.getAttribute("user");
         String userId = sessionUser.getUserId();
 
         // 요청 파라미터에서 비밀번호 및 확인 체크박스 값 추출
@@ -73,7 +73,7 @@ public class WithdrawCommand implements Command {
 
         try {
             // 비밀번호 확인을 위해 로그인 시도
-            User user = authService.login(userId, password);
+            UserDTO userDTO = authService.login(userId, password);
 
             // 회원 탈퇴 처리
             boolean success = userService.requestWithdrawal(userId);

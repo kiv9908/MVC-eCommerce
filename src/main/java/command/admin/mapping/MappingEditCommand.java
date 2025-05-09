@@ -1,9 +1,7 @@
 package command.admin.mapping;
 
 import config.AppConfig;
-import domain.dto.CategoryDTO;
 import domain.dto.MappingDTO;
-import domain.model.User;
 import lombok.extern.slf4j.Slf4j;
 import service.MappingService;
 
@@ -11,8 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class MappingEditCommand implements command.Command {

@@ -2,7 +2,7 @@ package command.user;
 
 import command.Command;
 import config.AppConfig;
-import domain.model.User;
+import domain.dto.UserDTO;
 import exception.DuplicateEmailException;
 import exception.InvalidEmailException;
 import exception.InvalidPasswordException;
@@ -58,17 +58,17 @@ public class JoinCommand implements Command {
 
         try {
             // 사용자 객체 생성
-            User user = new User();
-            user.setUserId(email); // 이메일을 사용자 ID로 사용
-            user.setUserName(userName);
-            user.setPassword(password);
-            user.setEmail(email);
-            user.setMobileNumber(mobileNumber);
-            user.setUserType("10");
-            user.setStatus("ST00"); // 승인 대기 상태로 설정
+            UserDTO userDTO = new UserDTO();
+            userDTO.setUserId(email); // 이메일을 사용자 ID로 사용
+            userDTO.setUserName(userName);
+            userDTO.setPassword(password);
+            userDTO.setEmail(email);
+            userDTO.setMobileNumber(mobileNumber);
+            userDTO.setUserType("10");
+            userDTO.setStatus("ST00"); // 승인 대기 상태로 설정
 
             // 회원가입 처리
-            userService.register(user);
+            userService.register(userDTO);
 
             log.info("회원가입 성공 - 이메일: {}", email);
 

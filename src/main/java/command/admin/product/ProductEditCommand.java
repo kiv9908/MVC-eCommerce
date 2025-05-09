@@ -3,7 +3,8 @@ package command.admin.product;
 import command.Command;
 import config.AppConfig;
 import domain.dto.ProductDTO;
-import domain.model.User;
+
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
 import service.ProductService;
@@ -216,7 +217,7 @@ public class ProductEditCommand implements Command {
         // 등록자 ID 설정
         String userId = null;
         if (request.getSession().getAttribute("user") != null) {
-            userId = ((User) request.getSession().getAttribute("user")).getUserId();
+            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
         } else {
             userId = "admin"; // 기본값
         }

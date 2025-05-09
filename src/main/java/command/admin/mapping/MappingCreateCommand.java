@@ -4,17 +4,15 @@ import command.Command;
 import config.AppConfig;
 import domain.dto.CategoryDTO;
 import domain.dto.MappingDTO;
-import domain.model.User;
+
+import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.MappingService;
-import domain.dao.MappingDAO;
-import domain.dao.MappingDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 public class MappingCreateCommand implements Command {
@@ -159,7 +157,7 @@ public class MappingCreateCommand implements Command {
         // 등록자 ID 설정
         String userId = null;
         if (request.getSession().getAttribute("user") != null) {
-            userId = ((User) request.getSession().getAttribute("user")).getUserId();
+            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
         } else {
             userId = "admin"; // 기본값
         }
