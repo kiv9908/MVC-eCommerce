@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import domain.model.Product;
 import java.util.Date;
 
 /**
@@ -16,67 +15,20 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO {
-    private String productCode;
-    private String productName;
-    private String detailExplain;
-    private String fileId;
-    private String startDate;
-    private String endDate;
-    private Integer customerPrice;
-    private Integer salePrice;
-    private Integer stock;
-    private Integer deliveryFee;
-    private String registerId;
-    private Date firstDate;
+    private String productCode;     // no_product - VARCHAR2(30), PK
+    private String productName;     // nm_product - VARCHAR2(200)
+    private String detailExplain;   // nm_detail_explain - CLOB
+    private String fileId;          // id_file - VARCHAR2(30)
+    private String startDate;       // dt_start_date - VARCHAR2(8)
+    private String endDate;         // dt_end_date - VARCHAR2(8)
+    private Integer customerPrice;  // qt_customer - NUMBER(9)
+    private Integer salePrice;      // qt_sale_price - NUMBER(9)
+    private Integer stock;          // qt_stock - NUMBER(9)
+    private Integer deliveryFee;    // qt_delivery_fee - NUMBER(9)
+    private String registerId;      // no_register - VARCHAR2(30)
+    private Date firstDate;         // da_first_date - DATE
     private String status;
-    
-    /**
-     * Product 엔티티로부터 DTO 객체 생성
-     */
-    public static ProductDTO toDTO(Product product) {
-        if (product == null) {
-            return null;
-        }
-        
-        ProductDTO dto = new ProductDTO();
-        dto.setProductCode(product.getProductCode());
-        dto.setProductName(product.getProductName());
-        dto.setDetailExplain(product.getDetailExplain());
-        dto.setFileId(product.getFileId());
-        dto.setStartDate(product.getStartDate());
-        dto.setEndDate(product.getEndDate());
-        dto.setCustomerPrice(product.getCustomerPrice());
-        dto.setSalePrice(product.getSalePrice());
-        dto.setStock(product.getStock());
-        dto.setDeliveryFee(product.getDeliveryFee());
-        dto.setRegisterId(product.getRegisterId());
-        dto.setFirstDate(product.getFirstDate());
-        dto.setStatus(product.getStatus()); // 동적으로 계산된 상태 설정
-        
-        return dto;
-    }
-    
-    /**
-     * DTO 객체로부터 Product 엔티티 생성
-     */
-    public Product toEntity() {
-        Product product = new Product();
-        
-        product.setProductCode(this.productCode);
-        product.setProductName(this.productName);
-        product.setDetailExplain(this.detailExplain);
-        product.setFileId(this.fileId);
-        product.setStartDate(this.startDate);
-        product.setEndDate(this.endDate);
-        product.setCustomerPrice(this.customerPrice);
-        product.setSalePrice(this.salePrice);
-        product.setStock(this.stock);
-        product.setDeliveryFee(this.deliveryFee);
-        product.setRegisterId(this.registerId);
-        product.setFirstDate(this.firstDate);
 
-        return product;
-    }
     
     /**
      * 유효성 검증 메서드
@@ -94,4 +46,27 @@ public class ProductDTO {
         
         return true;
     }
+
+    /**
+     * 상품의 상태를 판단하는 메서드
+     * @return 상품 상태 문자열: "판매중", "품절", "판매중지"
+     */
+    public String getStatus() {
+        // 현재 날짜 가져오기
+        String currentDate = new java.text.SimpleDateFormat("yyyyMMdd").format(new Date());
+
+        // 재고 확인
+        if (stock != null && stock <= 0) {
+            return "품절";
+        }
+
+        // 판매 기간 확인
+        if (endDate != null && endDate.compareTo(currentDate) < 0) {
+            return "판매중지";
+        }
+
+        // 위 조건 모두 해당하지 않으면 판매중
+        return "판매중";
+    }
+
 }

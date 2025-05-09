@@ -18,7 +18,7 @@ public class CategoryDAOImpl implements CategoryDAO {
     @Override
     public List<Category> findAll() {
         List<Category> categories = new ArrayList<>();
-        String sql = "SELECT * FROM tb_category WHERE yn_delete = 'N' ORDER BY cn_level, cn_order";
+        String sql = "SELECT * FROM tb_category WHERE yn_delete = 'N' ORDER BY cn_order, nm_full_category";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
