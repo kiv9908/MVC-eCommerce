@@ -12,6 +12,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class ProductDeleteCommand implements Command {
@@ -35,12 +37,35 @@ public class ProductDeleteCommand implements Command {
             String pathInfo = request.getPathInfo();
             String productCode = pathInfo.substring("/delete/".length());
 
-            // 상품 정보 조회 (이미지 ID 확인을 위해)
+            // 현재 페이지, 정렬 조건, 검색 키워드 가져오기
+            String page = request.getParameter("page");
+            String sortBy = request.getParameter("sortBy");
+            String keyword = request.getParameter("keyword");
+
+            // 리다이렉트 URL 구성을 위한 StringBuilder
+            StringBuilder redirectUrlBuilder = new StringBuilder();
+            redirectUrlBuilder.append("redirect:").append(request.getContextPath()).append("/admin/product/list?success=delete");
+
+            // 페이지 정보 추가
+            if (page != null && !page.isEmpty()) {
+                redirectUrlBuilder.append("&page=").append(page);
+            }
+
+            // 정렬 조건 추가
+            if (sortBy != null && !sortBy.isEmpty()) {
+                redirectUrlBuilder.append("&sortBy=").append(sortBy);
+            }
+
+            // 검색 키워드 추가 (URL 인코딩 적용)
+            if (keyword != null && !keyword.isEmpty()) {
+                String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString());
+                redirectUrlBuilder.append("&keyword=").append(encodedKeyword);
+            }
+
             ProductDTO productDTO = productService.getProductDTOByCode(productCode);
 
-            // 먼저 상품에 연결된 모든 카테고리 매핑 삭제
+            // 카테고리 매핑 삭제 로직 (기존 코드 유지)
             try {
-                // 개선된 메서드 사용: 한 번에 모든 매핑 삭제
                 boolean mappingsDeleted = mappingService.deleteAllMappingsByProductCode(productCode);
                 if (mappingsDeleted) {
                     log.info("상품 관련 카테고리 매핑 삭제 완료: ProductCode={}", productCode);
@@ -49,14 +74,13 @@ public class ProductDeleteCommand implements Command {
                 }
             } catch (Exception e) {
                 log.error("상품 관련 카테고리 매핑 삭제 중 오류 발생: {}", e.getMessage(), e);
-                // 매핑 삭제 실패해도 상품 삭제는 계속 진행
             }
 
             // 상품 삭제
             boolean success = productService.deleteProduct(productCode);
 
             if (success) {
-                // 연결된 이미지 파일 삭제
+                // 이미지 파일 삭제 로직 (기존 코드 유지)
                 if (productDTO != null && productDTO.getFileId() != null && !productDTO.getFileId().isEmpty()) {
                     boolean fileDeleted = fileService.deleteFile(productDTO.getFileId());
                     if (fileDeleted) {
@@ -66,12 +90,15 @@ public class ProductDeleteCommand implements Command {
                     }
                 }
 
-                return "redirect:" + request.getContextPath() + "/admin/product/list?success=delete";
+                return redirectUrlBuilder.toString();
             } else {
-                return "redirect:" + request.getContextPath() + "/admin/product/list?error=delete";
+                // 실패 시에도 같은 파라미터 유지
+                String errorUrl = redirectUrlBuilder.toString().replace("success=delete", "error=delete");
+                return errorUrl;
             }
         } catch (Exception e) {
             log.error("상품 삭제 중 오류 발생: {}", e.getMessage(), e);
+            // 기본 에러 리다이렉트 (파라미터 없음)
             return "redirect:" + request.getContextPath() + "/admin/product/list?error=delete";
         }
     }

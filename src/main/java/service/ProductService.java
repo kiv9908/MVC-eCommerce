@@ -204,4 +204,50 @@ public class ProductService {
             return false;
         }
     }
+
+    /**
+     * 페이지네이션 처리된 상품 목록 조회
+     */
+    public List<ProductDTO> getProductDTOsWithPagination(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findAllWithPagination(offset, pageSize);
+    }
+
+    /**
+     * 가격순으로 정렬된 상품 목록 조회 (페이지네이션)
+     */
+    public List<ProductDTO> getProductDTOsOrderByPriceWithPagination(boolean ascending, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findAllOrderByPriceWithPagination(ascending, offset, pageSize);
+    }
+
+    /**
+     * 상품명으로 상품 검색 (페이지네이션)
+     */
+    public List<ProductDTO> searchProductDTOsWithPagination(String keyword, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByProductNameWithPagination(keyword, offset, pageSize);
+    }
+
+    /**
+     * 전체 상품 개수 조회
+     */
+    public int getTotalProductCount() {
+        return productDAO.countAll();
+    }
+
+    /**
+     * 검색 결과 상품 개수 조회
+     */
+    public int getSearchResultCount(String keyword) {
+        return productDAO.countByProductName(keyword);
+    }
+
+    /**
+     * 상품명으로 상품 검색 + 가격 정렬 + 페이지네이션
+     */
+    public List<ProductDTO> searchProductDTOsOrderByPriceWithPagination(String keyword, boolean ascending, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByProductNameOrderByPriceWithPagination(keyword, ascending, offset, pageSize);
+    }
 }

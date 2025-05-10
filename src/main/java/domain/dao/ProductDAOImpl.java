@@ -354,6 +354,176 @@ public class ProductDAOImpl implements ProductDAO {
         return productDTO;
     }
 
+    @Override
+    public List<ProductDTO> findAllWithPagination(int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT * FROM TB_PRODUCT ORDER BY NO_PRODUCT OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, offset);
+            pstmt.setInt(2, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
+    @Override
+    public List<ProductDTO> findAllOrderByPriceWithPagination(boolean ascending, int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT * FROM TB_PRODUCT ORDER BY qt_sale_price " + (ascending ? "ASC" : "DESC") +
+                    " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, offset);
+            pstmt.setInt(2, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
+    @Override
+    public List<ProductDTO> findByProductNameWithPagination(String keyword, int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT * FROM TB_PRODUCT WHERE nm_product LIKE ? " +
+                    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, "%" + keyword + "%");
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
+    @Override
+    public int countAll() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT COUNT(*) FROM TB_PRODUCT";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return count;
+    }
+
+    @Override
+    public int countByProductName(String keyword) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT COUNT(*) FROM TB_PRODUCT WHERE nm_product LIKE ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, "%" + keyword + "%");
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return count;
+    }
+
+    @Override
+    public List<ProductDTO> findByProductNameOrderByPriceWithPagination(String keyword, boolean ascending, int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT * FROM TB_PRODUCT WHERE nm_product LIKE ? " +
+                    "ORDER BY qt_sale_price " + (ascending ? "ASC" : "DESC") +
+                    " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, "%" + keyword + "%");
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
     private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection conn) {
         try {
             if (rs != null) rs.close();

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ page import="java.net.URLEncoder" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -75,7 +75,8 @@
                     <div class="col-md-6">
                         <form action="${pageContext.request.contextPath}/admin/product/list" method="get">
                             <div class="input-group">
-                                <input type="text" class="form-control" name="keyword" value="${searchKeyword}" placeholder="상품명 검색..." />
+                                <input type="hidden" name="sortBy" value="${param.sortBy != null ? param.sortBy : 'priceAsc'}">
+                                <input type="text" class="form-control" name="keyword" value="${param.keyword}" placeholder="상품명 검색">
                                 <button class="btn btn-outline-secondary" type="submit">
                                     <i class="fas fa-search"></i>
                                 </button>
@@ -86,17 +87,16 @@
                     <!-- 정렬 -->
                     <div class="col-md-6">
                         <div class="btn-group float-end">
-                            <a href="${pageContext.request.contextPath}/admin/product/list?sortBy=priceAsc"
-                               class="btn btn-outline-secondary ${empty param.sortBy || param.sortBy eq 'priceAsc' ? 'active' : ''}">
+                            <a href="${pageContext.request.contextPath}/admin/product/list?sortBy=priceAsc${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}${not empty param.page ? '&page='.concat(param.page) : ''}"
+                               class="btn btn-outline-secondary ${empty param.sortBy || param.sortBy == 'priceAsc' ? 'active' : ''}">
                                 가격 낮은순
                             </a>
-                            <a href="${pageContext.request.contextPath}/admin/product/list?sortBy=priceDesc"
-                               class="btn btn-outline-secondary ${param.sortBy eq 'priceDesc' ? 'active' : ''}">
+                            <a href="${pageContext.request.contextPath}/admin/product/list?sortBy=priceDesc${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}${not empty param.page ? '&page='.concat(param.page) : ''}"
+                               class="btn btn-outline-secondary ${param.sortBy == 'priceDesc' ? 'active' : ''}">
                                 가격 높은순
                             </a>
                         </div>
                     </div>
-                </div>
 
                     <!-- 상품 목록 테이블 -->
                     <div class="table-responsive">
@@ -115,62 +115,112 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <c:forEach var="product" items="${searchKeyword != null ? searchResults : products}">
-                                    <tr>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${not empty product.fileId}">
-                                                    <img src="${pageContext.request.contextPath}/file/${product.fileId}" 
-                                                         alt="${product.productName}" 
-                                                         class="product-thumbnail">
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div class="no-image-placeholder">
-                                                        <i class="fas fa-image"></i>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>${product.productCode}</td>
-                                        <td>${product.productName}</td>
-                                        <td><fmt:formatNumber value="${product.customerPrice}" pattern="#,###" />원</td>
-                                        <td><fmt:formatNumber value="${product.salePrice}" pattern="#,###" />원</td>
-                                        <td>${product.stock}</td>
-                                        <td>
-                                            <span class="badge ${product.status eq '판매중' ? 'bg-success' : product.status eq '품절' ? 'bg-danger' : 'bg-warning'}">
-                                                ${product.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            ${product.startDate} ~ ${product.endDate}
-                                        </td>
-                                        <td>
-                                            <a class="btn btn-sm btn-outline-primary edit-btn me-1"
-                                               href="${pageContext.request.contextPath}/admin/product/edit/${product.productCode}">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a class="btn btn-sm btn-outline-danger delete-btn"
-                                               href="${pageContext.request.contextPath}/admin/product/delete/${product.productCode}"
-                                               data-product-code="${product.productCode}"
-                                               data-product-name="${product.productName}"
-                                            >
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                                <c:if test="${empty products}">
+                            <c:choose>
+                                <c:when test="${(searchKeyword != null && not empty searchResults) || (searchKeyword == null && not empty products)}">
+                                    <!-- 상품이 있는 경우 -->
+                                    <c:forEach var="product" items="${searchKeyword != null ? searchResults : products}">
+                                        <tr>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty product.fileId}">
+                                                        <img src="${pageContext.request.contextPath}/file/${product.fileId}"
+                                                             alt="${product.productName}"
+                                                             class="product-thumbnail">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="no-image-placeholder">
+                                                            <i class="fas fa-image"></i>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
+                                            <td>${product.productCode}</td>
+                                            <td>${product.productName}</td>
+                                            <td><fmt:formatNumber value="${product.customerPrice}" pattern="#,###" />원</td>
+                                            <td><fmt:formatNumber value="${product.salePrice}" pattern="#,###" />원</td>
+                                            <td>${product.stock}</td>
+                                            <td>
+                        <span class="badge ${product.status eq '판매중' ? 'bg-success' : product.status eq '품절' ? 'bg-danger' : 'bg-warning'}">
+                                ${product.status}
+                        </span>
+                                            </td>
+                                            <td>
+                                                    ${product.startDate} ~ ${product.endDate}
+                                            </td>
+                                            <td>
+                                                <a class="btn btn-sm btn-outline-primary edit-btn me-1"
+                                                   href="${pageContext.request.contextPath}/admin/product/edit/${product.productCode}">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a class="btn btn-sm btn-outline-danger delete-btn"
+                                                   href="${pageContext.request.contextPath}/admin/product/delete/${product.productCode}?page=${currentPage}&sortBy=${param.sortBy != null ? param.sortBy : 'priceAsc'}&keyword=${not empty param.keyword ? URLEncoder.encode(param.keyword, 'UTF-8') : ''}"
+                                                   data-product-code="${product.productCode}"
+                                                   data-product-name="${product.productName}"
+                                                >
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <!-- 상품이 없는 경우 -->
                                     <tr>
                                         <td colspan="9" class="text-center">등록된 상품이 없습니다.</td>
                                     </tr>
-                                </c:if>
+                                </c:otherwise>
+                            </c:choose>
                             </tbody>
                         </table>
+
+                        <!-- 페이지네이션 -->
+                        <div class="d-flex justify-content-center">
+                            <ul class="pagination">
+                                <!-- 이전 페이지 버튼 -->
+                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/admin/product/list?page=${currentPage - 1}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}&sortBy=${not empty param.sortBy ? param.sortBy : 'priceAsc'}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+
+                                <!-- 페이지 번호 -->
+                                <c:forEach begin="${startPage}" end="${endPage}" var="pageNum">
+                                    <li class="page-item ${pageNum == currentPage ? 'active' : ''}">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/admin/product/list?page=${pageNum}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}&sortBy=${not empty param.sortBy ? param.sortBy : 'priceAsc'}">${pageNum}</a>
+                                    </li>
+                                </c:forEach>
+
+                                <!-- 다음 페이지 버튼 -->
+                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/admin/product/list?page=${currentPage + 1}${not empty param.keyword ? '&keyword='.concat(param.keyword) : ''}&sortBy=${not empty param.sortBy ? param.sortBy : 'priceAsc'}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- 페이지 정보 표시 -->
+                        <div class="text-center mt-2 text-muted">
+                            <c:choose>
+                                <c:when test="${totalCount > 0}">
+                                    <c:set var="endRowNum" value="${currentPage * pageSize}" />
+                                    <c:if test="${endRowNum > totalCount}">
+                                        <c:set var="endRowNum" value="${totalCount}" />
+                                    </c:if>
+                                    <small>총 ${totalCount}개 상품 중 ${(currentPage-1) * pageSize + 1} ~ ${endRowNum}개 표시</small>
+                                </c:when>
+                                <c:otherwise>
+                                    <small>표시할 상품이 없습니다.</small>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
+
                     </div>
             </div>
         </div>
     </div>
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
