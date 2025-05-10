@@ -10,10 +10,10 @@ public interface CategoryDAO {
     List<CategoryDTO> findAll();
     
     // 카테고리 식별번호로 카테고리 조회
-    CategoryDTO findById(int nbCategory);
+    CategoryDTO findById(Long nbCategory);
     
     // 상위 카테고리로 하위 카테고리 목록 조회
-    List<CategoryDTO> findByParentId(int nbParentCategory);
+    List<CategoryDTO> findByParentId(Long nbParentCategory);
 
     // 카테고리 저장
     int save(CategoryDTO category);
@@ -22,13 +22,13 @@ public interface CategoryDAO {
     boolean update(CategoryDTO category);
     
     // 카테고리 삭제 (논리적 삭제 - YN_DELETE 필드 'Y'로 변경)
-    boolean delete(int nbCategory);
+    boolean delete(Long nbCategory);
     
     // 카테고리 사용/비사용 설정
-    boolean updateUseStatus(int nbCategory, String ynUse);
+    boolean updateUseStatus(Long nbCategory, String ynUse);
     
     // 카테고리 정렬 순서 업데이트
-    boolean updateOrder(int nbCategory, int cnOrder);
+    boolean updateOrder(Long nbCategory, int cnOrder);
     
     // 카테고리명 검색
     List<CategoryDTO> searchByName(String nmCategory);

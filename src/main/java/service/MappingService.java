@@ -1,7 +1,9 @@
 package service;
 
 import domain.dao.MappingDAO;
+import domain.dto.CategoryDTO;
 import domain.dto.MappingDTO;
+import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
@@ -78,28 +80,53 @@ public class MappingService {
             return new ArrayList<>();
         }
     }
-    
+
     /**
-     * 모든 카테고리 정보를 가져옵니다.
+     * 모든 카테고리 목록을 가져옵니다.
      */
-    public List<Map<String, Object>> getAllCategories() {
+    public List<CategoryDTO> getAllCategories() {
         try {
             return mappingDAO.getAllCategories();
         } catch (SQLException e) {
-            log.error("전체 카테고리 조회 중 오류 발생: {}", e.getMessage(), e);
+            log.error("모든 카테고리 조회 중 오류 발생: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }
-    
+
     /**
-     * 모든 상품 정보를 가져옵니다.
+     * 모든 상품 목록을 가져옵니다.
      */
-    public List<Map<String, Object>> getAllProducts() {
+    public List<ProductDTO> getAllProducts() {
         try {
             return mappingDAO.getAllProducts();
         } catch (SQLException e) {
-            log.error("전체 상품 조회 중 오류 발생: {}", e.getMessage(), e);
+            log.error("모든 상품 조회 중 오류 발생: {}", e.getMessage(), e);
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 상품 코드로 연결된 카테고리 목록을 가져옵니다.
+     */
+    public List<CategoryDTO> getMappingsByProductCode(String productCode) {
+        try {
+            return mappingDAO.getMappingsByProductCode(productCode);
+        } catch (SQLException e) {
+            log.error("상품 코드 {}로 카테고리 매핑 조회 중 오류 발생: {}", productCode, e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    // MappingService에 추가
+    /**
+     * 상품 코드로 모든 카테고리 매핑을 삭제합니다.
+     */
+    public boolean deleteAllMappingsByProductCode(String productCode) {
+        try {
+            return mappingDAO.deleteAllMappingsByProductCode(productCode);
+        } catch (SQLException e) {
+            log.error("상품 코드 {}로 모든 카테고리 매핑 삭제 중 오류 발생: {}", productCode, e.getMessage(), e);
+            return false;
         }
     }
 }

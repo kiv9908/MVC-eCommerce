@@ -12,8 +12,8 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryDTO {
-    private Integer id;
-    private Integer parentId;
+    private Long id;
+    private Long parentId;
     private String name;
     private String fullName;
     private String description;

@@ -27,7 +27,7 @@ public class CategoryService {
     /**
      * 카테고리 ID로 카테고리 DTO 조회
      */
-    public CategoryDTO getCategoryDTOById(int categoryId) {
+    public CategoryDTO getCategoryDTOById(Long categoryId) {
         return categoryDAO.findById(categoryId);
     }
 
@@ -98,7 +98,7 @@ public class CategoryService {
     /**
      * 카테고리 삭제
      */
-    public boolean deleteCategory(int categoryId) {
+    public boolean deleteCategory(Long categoryId) {
         // 하위 카테고리가 있는지 확인
         List<CategoryDTO> subcategories = categoryDAO.findByParentId(categoryId);
         if (!subcategories.isEmpty()) {

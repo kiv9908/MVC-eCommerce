@@ -68,7 +68,7 @@ public class CategoryEditCommand implements Command {
 
             log.info("categoryIdStr: {}", categoryIdStr);
 
-            int categoryId = Integer.parseInt(categoryIdStr);
+            Long categoryId = Long.parseLong(categoryIdStr);
             log.info("categoryId : {}", categoryId);
 
             // 수정할 카테고리 정보 조회 (DTO 사용)
@@ -167,7 +167,7 @@ public class CategoryEditCommand implements Command {
         // categoryId 파라미터가 있는 경우 (수정 시)
         String categoryIdStr = request.getParameter("categoryId");
         if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
-            dto.setId(Integer.parseInt(categoryIdStr));
+            dto.setId(Long.parseLong(categoryIdStr));
         }
 
         // 이름, 전체 이름, 설명
@@ -178,7 +178,7 @@ public class CategoryEditCommand implements Command {
         // 상위 카테고리
         String parentIdStr = request.getParameter("parentId");
         if (parentIdStr != null && !parentIdStr.isEmpty()) {
-            dto.setParentId(Integer.parseInt(parentIdStr));
+            dto.setParentId(Long.parseLong(parentIdStr));
         }
 
         // 순서

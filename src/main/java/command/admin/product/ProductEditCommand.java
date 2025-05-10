@@ -2,11 +2,13 @@ package command.admin.product;
 
 import command.Command;
 import config.AppConfig;
+import domain.dto.CategoryDTO;
 import domain.dto.ProductDTO;
 
 import domain.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
+import service.MappingService;
 import service.ProductService;
 
 import javax.servlet.ServletException;
@@ -14,22 +16,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class ProductEditCommand implements Command {
     private final ProductService productService;
     private final FileService fileService;
+    private final MappingService mappingService;
 
     public ProductEditCommand() {
         // AppConfig에서 서비스 가져오기
         AppConfig appConfig = AppConfig.getInstance();
         this.productService = appConfig.getProductService();
         this.fileService = appConfig.getFileService();
+        this.mappingService = appConfig.getMappingService();
 
-        // fileService가 null이면 로그 남기기
-        if (this.fileService == null) {
-            log.error("FileService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
-        }
     }
 
     @Override
@@ -66,7 +68,25 @@ public class ProductEditCommand implements Command {
 
             request.setAttribute("product", productDTO);
 
-            // 통합된 상품 페이지로 포워딩
+            // ProductEditCommand.java의 handleGetRequest 메서드에서
+            try {
+                // 1. 현재 상품에 연결된 카테고리 매핑 정보 로드 - CategoryDTO 리스트로 변경
+                List<CategoryDTO> productCategoryMappings = mappingService.getMappingsByProductCode(productCode);
+                request.setAttribute("productCategoryMappings", productCategoryMappings);
+
+                // 2. 사용 가능한 모든 카테고리 목록 로드
+                List<CategoryDTO> availableCategories = mappingService.getAllCategories();
+                request.setAttribute("availableCategories", availableCategories);
+
+                // 로그로 확인
+                log.info("상품 카테고리 매핑 수: {}", productCategoryMappings.size());
+                log.info("사용 가능한 카테고리 수: {}", availableCategories.size());
+            } catch (Exception e) {
+                log.error("카테고리 매핑 정보 로딩 중 오류 발생: {}", e.getMessage(), e);
+                // 오류가 발생해도 페이지는 계속 로드
+            }
+
+            // 상품 페이지로 포워딩
             return "/WEB-INF/views/admin/product/productEdit.jsp";
         } catch (Exception e) {
             log.error("상품 수정 폼 표시 중 오류 발생: {}", e.getMessage(), e);
@@ -146,6 +166,12 @@ public class ProductEditCommand implements Command {
             boolean success = productService.updateProduct(productDTO);
 
             if (success) {
+                // 상품 업데이트 성공 후 카테고리 매핑 처리
+                boolean mappingSuccess = handleCategoryMappings(request, productDTO.getProductCode());
+                if (!mappingSuccess) {
+                    log.warn("상품은 업데이트되었으나 카테고리 매핑 처리 중 오류가 발생했습니다.");
+                }
+
                 return "redirect:" + request.getContextPath() + "/admin/product/list?success=update";
             } else {
                 request.setAttribute("errorMessage", "상품 수정에 실패했습니다.");
@@ -242,5 +268,76 @@ public class ProductEditCommand implements Command {
             log.error("파일 업로드 중 오류 발생: {}", e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * 카테고리 매핑 정보 처리
+     * @param request HTTP 요청
+     * @param productCode 상품 코드
+     * @return 처리 성공 여부
+     */
+    private boolean handleCategoryMappings(HttpServletRequest request, String productCode) {
+        try {
+            // 1. 새로 추가된 카테고리 매핑 처리
+            String[] newCategoryIds = request.getParameterValues("newCategoryIds");
+            if (newCategoryIds != null) {
+                for (String categoryIdStr : newCategoryIds) {
+                    try {
+                        Long categoryId = Long.parseLong(categoryIdStr);
+                        domain.dto.MappingDTO mappingDTO = new domain.dto.MappingDTO();
+                        mappingDTO.setProductCode(productCode);
+                        mappingDTO.setCategoryId(categoryId);
+
+                        // 등록자 정보 설정
+                        String userId = null;
+                        if (request.getSession().getAttribute("user") != null) {
+                            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
+                        } else {
+                            userId = "admin"; // 기본값
+                        }
+                        mappingDTO.setRegisterUser(userId);
+
+                        // 중복 매핑 확인
+                        domain.dto.MappingDTO existingMapping = mappingService.getMappingByProductAndCategory(productCode, categoryId);
+                        if (existingMapping == null) {
+                            // 새 매핑 생성
+                            boolean created = mappingService.createMapping(mappingDTO);
+                            if (created) {
+                                log.info("새 카테고리 매핑 추가: 상품={}, 카테고리={}", productCode, categoryId);
+                            } else {
+                                log.warn("카테고리 매핑 추가 실패: 상품={}, 카테고리={}", productCode, categoryId);
+                            }
+                        } else {
+                            log.info("카테고리 매핑이 이미 존재합니다: 상품={}, 카테고리={}", productCode, categoryId);
+                        }
+                    } catch (NumberFormatException e) {
+                        log.error("잘못된 카테고리 ID 형식: {}", categoryIdStr);
+                    }
+                }
+            }
+
+            // 2. 삭제할 카테고리 매핑 처리
+            String[] deleteCategoryIds = request.getParameterValues("deleteCategoryIds");
+            if (deleteCategoryIds != null) {
+                for (String categoryIdStr : deleteCategoryIds) {
+                    try {
+                        Long categoryId = Long.parseLong(categoryIdStr);
+                        boolean deleted = mappingService.deleteMappingByProductAndCategory(productCode, categoryId);
+                        if (deleted) {
+                            log.info("카테고리 매핑 삭제: 상품={}, 카테고리={}", productCode, categoryId);
+                        } else {
+                            log.warn("카테고리 매핑 삭제 실패: 상품={}, 카테고리={}", productCode, categoryId);
+                        }
+                    } catch (NumberFormatException e) {
+                        log.error("잘못된 카테고리 ID 형식: {}", categoryIdStr);
+                    }
+                }
+            }
+
+            return true;
+        } catch (Exception e) {
+            log.error("카테고리 매핑 처리 중 오류 발생: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }
