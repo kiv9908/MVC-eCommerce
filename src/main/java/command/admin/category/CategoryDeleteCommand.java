@@ -42,7 +42,7 @@ public class CategoryDeleteCommand implements Command {
 
             log.info("categoryIdStr: {}", categoryIdStr);
 
-            int categoryId = Integer.parseInt(categoryIdStr);
+            Long categoryId = Long.parseLong(categoryIdStr);
             log.info("categoryId : {}", categoryId);
 
 

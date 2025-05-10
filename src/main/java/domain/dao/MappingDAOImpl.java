@@ -1,6 +1,8 @@
 package domain.dao;
 
+import domain.dto.CategoryDTO;
 import domain.dto.MappingDTO;
+import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import util.DatabaseConnection;
 
@@ -292,64 +294,159 @@ public class MappingDAOImpl implements MappingDAO {
     }
 
     @Override
-    public List<Map<String, Object>> getAllCategories() throws SQLException {
+    public List<CategoryDTO> getAllCategories() throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        
-        List<Map<String, Object>> categories = new ArrayList<>();
-        String sql = "SELECT nb_category, nm_category, nm_full_category FROM tb_category WHERE YN_DELETE = 'N' ORDER BY nm_full_category";
-        
+
+        List<CategoryDTO> categories = new ArrayList<>();
+        String sql = "SELECT nb_category, nb_parent_category, nm_category, nm_full_category, " +
+                "nm_explain, cn_level, cn_order, yn_use, yn_delete, " +
+                "no_register, da_first_date " +
+                "FROM tb_category WHERE YN_DELETE = 'N' ORDER BY nm_full_category";
+
         try {
             conn = DatabaseConnection.getConnection();
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
-            
+
             while (rs.next()) {
-                Map<String, Object> category = new HashMap<>();
-                category.put("id", rs.getLong("nb_category"));
-                category.put("name", rs.getString("nm_category"));
-                category.put("fullName", rs.getString("nm_full_category"));
-                
+                CategoryDTO category = new CategoryDTO();
+                category.setId(rs.getLong("nb_category"));
+                category.setParentId(rs.getLong("nb_parent_category"));
+                category.setName(rs.getString("nm_category"));
+                category.setFullName(rs.getString("nm_full_category"));
+                category.setDescription(rs.getString("nm_explain"));
+                category.setLevel(rs.getInt("cn_level"));
+                category.setOrder(rs.getInt("cn_order"));
+                category.setUseYn(rs.getString("yn_use"));
+                category.setDeleteYn(rs.getString("yn_delete"));
+                category.setRegisterId(rs.getString("no_register"));
+                category.setDaFirstDate(rs.getTimestamp("da_first_date"));
+
                 categories.add(category);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("모든 카테고리 조회 중 오류 발생: {}", e.getMessage());
+            throw e;
         } finally {
             closeResources(rs, pstmt, conn);
         }
-        
+
         return categories;
     }
 
     @Override
-    public List<Map<String, Object>> getAllProducts() throws SQLException {
+    public List<ProductDTO> getAllProducts() throws SQLException {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
-        
-        List<Map<String, Object>> products = new ArrayList<>();
-        String sql = "SELECT no_product, nm_product FROM tb_product ORDER BY nm_product";
-        
+
+        List<ProductDTO> products = new ArrayList<>();
+        String sql = "SELECT no_product, nm_product, da_first_date, no_register " +
+                "FROM tb_product ORDER BY nm_product";
+
         try {
             conn = DatabaseConnection.getConnection();
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
-            
+
             while (rs.next()) {
-                Map<String, Object> product = new HashMap<>();
-                product.put("code", rs.getString("no_product"));
-                product.put("name", rs.getString("nm_product"));
-                
+                ProductDTO product = new ProductDTO();
+                product.setProductCode(rs.getString("no_product"));
+                product.setProductName(rs.getString("nm_product"));
+                product.setFirstDate(rs.getTimestamp("da_first_date"));
+                product.setRegisterId(rs.getString("no_register"));
+
                 products.add(product);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("모든 상품 조회 중 오류 발생: {}", e.getMessage());
+            throw e;
         } finally {
             closeResources(rs, pstmt, conn);
         }
-        
+
         return products;
+    }
+
+    @Override
+    public List<CategoryDTO> getMappingsByProductCode(String productCode) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        List<CategoryDTO> categories = new ArrayList<>();
+        String sql = "SELECT c.nb_category, c.nb_parent_category, c.nm_category, c.nm_full_category, " +
+                "c.nm_explain, c.cn_level, c.cn_order, c.yn_use, c.yn_delete, " +
+                "c.no_register, c.da_first_date, m.cn_order AS mapping_order " +
+                "FROM tb_category c " +
+                "JOIN tb_category_product_mapping m ON c.nb_category = m.nb_category " +
+                "WHERE m.NO_PRODUCT = ? AND c.yn_delete = 'N' " +
+                "ORDER BY m.cn_order, c.nm_full_category";
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, productCode);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                CategoryDTO categoryDTO = new CategoryDTO();
+                categoryDTO.setId(rs.getLong("nb_category"));
+                categoryDTO.setParentId(rs.getLong("nb_parent_category"));
+                categoryDTO.setName(rs.getString("nm_category"));
+                categoryDTO.setFullName(rs.getString("nm_full_category"));
+                categoryDTO.setDescription(rs.getString("nm_explain"));
+                categoryDTO.setLevel(rs.getInt("cn_level"));
+                categoryDTO.setOrder(rs.getInt("cn_order"));
+                categoryDTO.setUseYn(rs.getString("yn_use"));
+                categoryDTO.setDeleteYn(rs.getString("yn_delete"));
+                categoryDTO.setRegisterId(rs.getString("no_register"));
+                categoryDTO.setDaFirstDate(rs.getTimestamp("da_first_date"));
+
+                categories.add(categoryDTO);
+            }
+        } catch (SQLException e) {
+            log.error("상품 코드로 카테고리 매핑 조회 중 오류 발생: {}", e.getMessage());
+            throw e;
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+
+        return categories;
+    }
+
+    @Override
+    public boolean deleteAllMappingsByProductCode(String productCode) throws SQLException {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        String sql = "DELETE FROM tb_category_product_mapping WHERE NO_PRODUCT = ?";
+        boolean success = false;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);  // 자동 커밋 끄기
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, productCode);
+
+            int affectedRows = pstmt.executeUpdate();
+            // 삭제된 행이 없어도 성공으로 간주
+            success = true;
+
+            conn.commit();  // 성공 시 커밋
+            log.info("상품 코드 {}로 {}개의 카테고리 매핑 삭제 완료", productCode, affectedRows);
+        } catch (SQLException e) {
+            if (conn != null) conn.rollback();  // 예외 발생 시 롤백
+            log.error("상품 코드로 모든 카테고리 매핑 삭제 중 오류 발생: {}", e.getMessage());
+            throw e;
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+
+        return success;
     }
 
     // closeResources 메서드 수정
@@ -359,7 +456,7 @@ public class MappingDAOImpl implements MappingDAO {
             if (pstmt != null) pstmt.close();
             if (conn != null) DatabaseConnection.closeConnection(conn); // 풀에 연결 반환
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("리소스 정리 중 오류 발생: {}", e.getMessage());
         }
     }
 }

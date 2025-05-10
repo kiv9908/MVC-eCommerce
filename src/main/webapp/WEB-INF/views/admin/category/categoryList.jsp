@@ -66,7 +66,7 @@
               <th>전체 카테고리</th>
               <th>순서</th>
               <th>사용여부</th>
-              <th>관리</th>
+              <th>작업</th>
             </tr>
           </thead>
           <tbody>
@@ -101,6 +101,11 @@
                 <a href="${pageContext.request.contextPath}/admin/category/edit/${category.id}" 
                    class="btn btn-sm btn-outline-primary me-1 btn-action" title="카테고리 편집">
                   <i class="fas fa-edit"></i>
+                </a>
+                <!-- 삭제 버튼-->
+                <a href="${pageContext.request.contextPath}/admin/category/delete/${category.id}"
+                   class="btn btn-sm btn-outline-danger" title="매핑 삭제">
+                  <i class="fas fa-trash-alt"></i>
                 </a>
               </td>
             </tr>

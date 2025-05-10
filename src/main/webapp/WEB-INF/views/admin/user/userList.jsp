@@ -69,7 +69,7 @@
                         <th>연락처</th>
                         <th>권한</th>
                         <th>상태</th>
-                        <th>관리</th>
+                        <th>작업</th>
                     </tr>
                     </thead>
                     <tbody>

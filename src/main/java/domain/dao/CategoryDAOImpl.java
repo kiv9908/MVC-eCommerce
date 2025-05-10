@@ -32,13 +32,13 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public CategoryDTO findById(int nbCategory) {
+    public CategoryDTO findById(Long nbCategory) {
         String sql = "SELECT * FROM tb_category WHERE nb_category = ? AND yn_delete = 'N'";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, nbCategory);
+            pstmt.setLong(1, nbCategory);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -53,14 +53,14 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public List<CategoryDTO> findByParentId(int nbParentCategory) {
+    public List<CategoryDTO> findByParentId(Long nbParentCategory) {
         List<CategoryDTO> categories = new ArrayList<>();
         String sql = "SELECT * FROM tb_category WHERE nb_parent_category = ? AND yn_delete = 'N' ORDER BY cn_order";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, nbParentCategory);
+            pstmt.setLong(1, nbParentCategory);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -86,7 +86,7 @@ public class CategoryDAOImpl implements CategoryDAO {
 
             // nb_parent_category
             if (categoryDTO.getParentId() != null) {
-                pstmt.setInt(1, categoryDTO.getParentId());
+                pstmt.setLong(1, categoryDTO.getParentId());
             } else {
                 pstmt.setNull(1, Types.INTEGER);
             }
@@ -153,7 +153,7 @@ public class CategoryDAOImpl implements CategoryDAO {
             }
 
             pstmt.setString(6, categoryDTO.getUseYn());
-            pstmt.setInt(7, categoryDTO.getId());
+            pstmt.setLong(7, categoryDTO.getId());
 
             return pstmt.executeUpdate() > 0;
 
@@ -165,13 +165,13 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public boolean delete(int nbCategory) {
+    public boolean delete(Long nbCategory) {
         String sql = "UPDATE tb_category SET yn_delete = 'Y' WHERE nb_category = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, nbCategory);
+            pstmt.setLong(1, nbCategory);
 
             return pstmt.executeUpdate() > 0;
 
@@ -183,14 +183,14 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public boolean updateUseStatus(int nbCategory, String ynUse) {
+    public boolean updateUseStatus(Long nbCategory, String ynUse) {
         String sql = "UPDATE tb_category SET yn_use = ? WHERE nb_category = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, ynUse);
-            pstmt.setInt(2, nbCategory);
+            pstmt.setLong(2, nbCategory);
 
             return pstmt.executeUpdate() > 0;
 
@@ -202,14 +202,14 @@ public class CategoryDAOImpl implements CategoryDAO {
     }
 
     @Override
-    public boolean updateOrder(int nbCategory, int cnOrder) {
+    public boolean updateOrder(Long nbCategory, int cnOrder) {
         String sql = "UPDATE tb_category SET cn_order = ? WHERE nb_category = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, cnOrder);
-            pstmt.setInt(2, nbCategory);
+            pstmt.setLong(2, nbCategory);
 
             return pstmt.executeUpdate() > 0;
 
@@ -247,9 +247,9 @@ public class CategoryDAOImpl implements CategoryDAO {
     private CategoryDTO mapResultSetToCategory(ResultSet rs) throws SQLException {
         CategoryDTO categoryDTO = new CategoryDTO();
         
-        categoryDTO.setId(rs.getInt("nb_category"));
-        
-        int parentCategory = rs.getInt("nb_parent_category");
+        categoryDTO.setId(rs.getLong("nb_category"));
+
+        Long parentCategory = rs.getLong("nb_parent_category");
         if (!rs.wasNull()) {
             categoryDTO.setParentId(parentCategory);
         }

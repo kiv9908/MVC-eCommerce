@@ -1,6 +1,8 @@
 package domain.dao;
 
+import domain.dto.CategoryDTO;
 import domain.dto.MappingDTO;
+import domain.dto.ProductDTO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -28,8 +30,14 @@ public interface MappingDAO {
     List<MappingDTO> searchMappings(String keyword) throws SQLException;
     
     // 모든 카테고리 정보 가져오기 (매핑 폼에서 사용)
-    List<Map<String, Object>> getAllCategories() throws SQLException;
+    List<CategoryDTO> getAllCategories() throws SQLException;
     
     // 모든 상품 정보 가져오기 (매핑 폼에서 사용)
-    List<Map<String, Object>> getAllProducts() throws SQLException;
+    List<ProductDTO> getAllProducts() throws SQLException;
+
+    // 상품 코드로 매핑된 카테고리 목록 가져오기
+    List<CategoryDTO> getMappingsByProductCode(String productCode) throws SQLException;
+
+    // 상품 코드로 연결된 모든 매핑 삭제
+    boolean deleteAllMappingsByProductCode(String productCode) throws SQLException;
 }

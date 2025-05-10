@@ -123,7 +123,7 @@ public class CategoryCreateCommand implements Command {
         // 상위 카테고리
         String parentIdStr = request.getParameter("parentId");
         if (parentIdStr != null && !parentIdStr.isEmpty()) {
-            dto.setParentId(Integer.parseInt(parentIdStr));
+            dto.setParentId(Long.parseLong(parentIdStr));
         }
 
         // 순서
