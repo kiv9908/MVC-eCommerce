@@ -37,26 +37,6 @@
                 </div>
             </c:if>
 
-            <!-- 검색 및 필터 -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="searchInput" placeholder="이름 또는 이메일로 검색..." />
-                        <button class="btn btn-outline-secondary" type="button" id="searchButton">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="btn-group float-end">
-                        <button type="button" class="btn btn-outline-secondary" id="filterAll">전체</button>
-                        <button type="button" class="btn btn-outline-secondary" id="filterActive">정상</button>
-                        <button type="button" class="btn btn-outline-secondary" id="filterRequest">요청</button>
-                        <button type="button" class="btn btn-outline-secondary" id="filterInactive">해지</button>
-                        <button type="button" class="btn btn-outline-secondary" id="filterStop">일시정지</button>
-                    </div>
-                </div>
-            </div>
 
             <!-- 사용자 목록 테이블 -->
             <div class="table-responsive">
@@ -122,6 +102,39 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- 페이지네이션 -->
+            <c:if test="${pageDTO.totalCount > 0}">
+                <div class="d-flex justify-content-center">
+                    <ul class="pagination">
+                        <!-- 이전 페이지 버튼 -->
+                        <li class="page-item ${pageDTO.currentPage == 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="${pageContext.request.contextPath}/admin/user/list?page=${pageDTO.currentPage - 1}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+
+                        <!-- 페이지 번호 -->
+                        <c:forEach begin="${pageDTO.startPage}" end="${pageDTO.endPage}" var="pageNum">
+                            <li class="page-item ${pageNum == pageDTO.currentPage ? 'active' : ''}">
+                                <a class="page-link" href="${pageContext.request.contextPath}/admin/user/list?page=${pageNum}">${pageNum}</a>
+                            </li>
+                        </c:forEach>
+
+                        <!-- 다음 페이지 버튼 -->
+                        <li class="page-item ${pageDTO.currentPage == pageDTO.totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="${pageContext.request.contextPath}/admin/user/list?page=${pageDTO.currentPage + 1}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 페이지 정보 표시 -->
+                <div class="text-center mt-2 text-muted">
+                    <small>총 ${pageDTO.totalCount}명의 회원 중 ${pageDTO.startRow} ~ ${pageDTO.endRow}명 표시</small>
+                </div>
+            </c:if>
         </div>
     </div>
 </div>

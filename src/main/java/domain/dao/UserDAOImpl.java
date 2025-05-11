@@ -209,4 +209,64 @@ public class UserDAOImpl implements UserDAO {
             closeResources(null, pstmt, conn);
         }
     }
+
+    @Override
+    public List<UserDTO> findAllWithPagination(int offset, int limit) {
+        List<UserDTO> users = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            // Oracle 페이지네이션 쿼리 사용
+            String sql = "SELECT * FROM ("
+                    + "SELECT tb.*, ROWNUM rnum FROM ("
+                    + "SELECT * FROM TB_USER ORDER BY da_first_date DESC"
+                    + ") tb WHERE ROWNUM <= ?"
+                    + ") WHERE rnum > ?";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, offset + limit); // ROWNUM <= (offset + limit)
+            pstmt.setInt(2, offset);         // rnum > offset
+
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                UserDTO userDTO = resultSetToUser(rs);
+                users.add(userDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return users;
+    }
+
+    @Override
+    public int countAll() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT COUNT(*) FROM TB_USER";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return count;
+    }
 }
