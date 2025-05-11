@@ -16,7 +16,7 @@
         </a>
       </li>
       <li>
-        <a href="${pageContext.request.contextPath}/admin/product/list"
+        <a href="${pageContext.request.contextPath}/admin/product/list?page=1&sortBy=priceAsc"
            class="nav-link ${pageId == 'product' ? 'active' : 'text-white'}">
           <i class="fas fa-store me-2"></i>
           상품 관리
@@ -29,13 +29,13 @@
           카테고리 관리
         </a>
       </li>
-      <li>
-        <a href="${pageContext.request.contextPath}/admin/mapping/list"
-           class="nav-link ${pageId == 'mapping' ? 'active' : 'text-white'}">
-          <i class="fas fa-sitemap me-2"></i>
-          카테고리 매핑 관리
-        </a>
-      </li>
+<%--      <li>--%>
+<%--        <a href="${pageContext.request.contextPath}/admin/mapping/list"--%>
+<%--           class="nav-link ${pageId == 'mapping' ? 'active' : 'text-white'}">--%>
+<%--          <i class="fas fa-sitemap me-2"></i>--%>
+<%--          카테고리 매핑 관리--%>
+<%--        </a>--%>
+<%--      </li>--%>
       <li>
         <a href="#" class="nav-link text-white">
           <i class="fas fa-shopping-cart me-2"></i>

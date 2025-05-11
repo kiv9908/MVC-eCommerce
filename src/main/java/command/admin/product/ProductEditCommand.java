@@ -172,7 +172,7 @@ public class ProductEditCommand implements Command {
                     log.warn("상품은 업데이트되었으나 카테고리 매핑 처리 중 오류가 발생했습니다.");
                 }
 
-                return "redirect:" + request.getContextPath() + "/admin/product/list?success=update";
+                return "redirect:" + request.getContextPath() + "/admin/product/list?page=1&sortBy=priceAsc&success=update";
             } else {
                 request.setAttribute("errorMessage", "상품 수정에 실패했습니다.");
                 request.setAttribute("product", productDTO);

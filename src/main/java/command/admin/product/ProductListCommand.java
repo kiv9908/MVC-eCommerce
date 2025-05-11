@@ -43,6 +43,11 @@ public class ProductListCommand implements Command {
                     request.getParameter("keyword")
             );
 
+            // sortBy가 없는 경우 기본값 설정
+            if (pageDTO.getSortBy() == null || pageDTO.getSortBy().isEmpty()) {
+                pageDTO.setSortBy("priceAsc");
+            }
+
             // 서비스 계층에서 페이지네이션 설정
             pageDTO = productService.setupProductPage(pageDTO);
 

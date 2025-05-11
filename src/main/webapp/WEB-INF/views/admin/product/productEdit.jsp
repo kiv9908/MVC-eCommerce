@@ -225,7 +225,7 @@
                                 </a>
                             </c:otherwise>
                         </c:choose>
-                        <a href="${pageContext.request.contextPath}/admin/product/list" class="btn btn-secondary">취소</a>
+                        <a href="javascript:history.back()" class="btn btn-secondary">취소</a>
                     </div>
                 </form>
 
