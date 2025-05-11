@@ -1,6 +1,7 @@
 package service;
 
 import domain.dao.ProductDAO;
+import domain.dto.PageDTO;
 import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,41 +13,18 @@ import java.util.List;
 @Slf4j
 public class ProductService {
     private final ProductDAO productDAO;
+    private final MappingService mappingService;
+    private final FileService fileService;
 
-    public ProductService(ProductDAO productDAO) {
+    public ProductService(ProductDAO productDAO, MappingService mappingService, FileService fileService) {
         this.productDAO = productDAO;
+        this.mappingService = mappingService;
+        this.fileService = fileService;
     }
 
-    /**
-     * 모든 상품 조회 (Entity 반환)
-     */
-    public List<ProductDTO> findAll() {
-        return productDAO.findAll();
-    }
 
     /**
-     * 상품 목록 조회 (DTO 변환)
-     */
-    public List<ProductDTO> getAllProductDTOs() {
-        return productDAO.findAll();
-    }
-
-    /**
-     * 가격순으로 정렬된 상품 목록 조회 (DTO 변환)
-     */
-    public List<ProductDTO> getAllProductDTOsOrderByPrice(boolean ascending) {
-        return productDAO.findAllOrderByPrice(ascending);
-    }
-
-    /**
-     * 상품명으로 상품 검색
-     */
-    public List<ProductDTO> searchProductDTOs(String keyword) {
-        return productDAO.findByProductName(keyword);
-    }
-
-    /**
-     * 상품코드로 상품 조회 (DTO 변환)
+     * 상품코드로 상품 조회
      */
     public ProductDTO getProductDTOByCode(String productCode) {
         return productDAO.findByProductCode(productCode);
@@ -201,6 +179,162 @@ public class ProductService {
             return productDAO.modifySaleStatus(productCode, startDate, endDate);
         } catch (Exception e) {
             log.error("상품 판매 시작 처리 중 오류 발생: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 페이지네이션 처리된 상품 목록 조회
+     */
+    public List<ProductDTO> getProductDTOsWithPagination(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findAllWithPagination(offset, pageSize);
+    }
+
+    /**
+     * 가격순으로 정렬된 상품 목록 조회 (페이지네이션)
+     */
+    public List<ProductDTO> getProductDTOsOrderByPriceWithPagination(boolean ascending, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findAllOrderByPriceWithPagination(ascending, offset, pageSize);
+    }
+
+    /**
+     * 상품명으로 상품 검색 (페이지네이션)
+     */
+    public List<ProductDTO> searchProductDTOsWithPagination(String keyword, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByProductNameWithPagination(keyword, offset, pageSize);
+    }
+
+    /**
+     * 전체 상품 개수 조회
+     */
+    public int getTotalProductCount() {
+        return productDAO.countAll();
+    }
+
+    /**
+     * 검색 결과 상품 개수 조회
+     */
+    public int getSearchResultCount(String keyword) {
+        return productDAO.countByProductName(keyword);
+    }
+
+    /**
+     * 상품명으로 상품 검색 + 가격 정렬 + 페이지네이션
+     */
+    public List<ProductDTO> searchProductDTOsOrderByPriceWithPagination(String keyword, boolean ascending, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByProductNameOrderByPriceWithPagination(keyword, ascending, offset, pageSize);
+    }
+
+    // ProductService.java에 추가
+    public PageDTO setupProductPage(PageDTO pageDTO) {
+        // 검색어가 있는 경우
+        if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
+            // 검색 결과 총 개수 조회
+            pageDTO.setTotalCount(getSearchResultCount(pageDTO.getKeyword()));
+        } else {
+            // 전체 상품 개수 조회
+            pageDTO.setTotalCount(getTotalProductCount());
+        }
+
+        // 페이지네이션 계산
+        pageDTO.calculatePagination();
+
+        return pageDTO;
+    }
+
+    // 페이지네이션 정보와 정렬 조건을 기반으로 상품 목록 조회
+    public List<ProductDTO> getProductsByPage(PageDTO pageDTO) {
+        // 검색어가 있는 경우
+        if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
+            // 정렬 조건에 따라 다른 메서드 호출
+            if ("priceAsc".equals(pageDTO.getSortBy())) {
+                return searchProductDTOsOrderByPriceWithPagination(
+                        pageDTO.getKeyword(), true, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else if ("priceDesc".equals(pageDTO.getSortBy())) {
+                return searchProductDTOsOrderByPriceWithPagination(
+                        pageDTO.getKeyword(), false, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else {
+                // 기본 검색 결과
+                return searchProductDTOsWithPagination(
+                        pageDTO.getKeyword(), pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            }
+        } else {
+            // 전체 상품 목록
+            if ("priceAsc".equals(pageDTO.getSortBy())) {
+                return getProductDTOsOrderByPriceWithPagination(
+                        true, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else if ("priceDesc".equals(pageDTO.getSortBy())) {
+                return getProductDTOsOrderByPriceWithPagination(
+                        false, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else {
+                // 기본 정렬
+                return getProductDTOsWithPagination(
+                        pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            }
+        }
+    }
+
+    // PageDTO에서 요청 파라미터 설정 메서드
+    public PageDTO createPageDTOFromParameters(String pageParam, String sortByParam, String keywordParam) {
+        PageDTO pageDTO = new PageDTO();
+
+        // 페이지 번호 설정
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                int currentPage = Integer.parseInt(pageParam);
+                pageDTO.setCurrentPage(Math.max(1, currentPage));
+            } catch (NumberFormatException e) {
+                // 잘못된 형식이면 기본값 1 사용
+                pageDTO.setCurrentPage(1);
+            }
+        }
+
+        // 정렬 옵션 설정
+        pageDTO.setSortBy(sortByParam);
+
+        // 검색어 설정
+        pageDTO.setKeyword(keywordParam);
+
+        return pageDTO;
+    }
+
+    // 상품 및 관련 데이터 삭제를 위한 통합 메서드
+    public boolean deleteProductWithRelations(String productCode) {
+        try {
+            // 상품 정보 조회 (이미지 ID 확인을 위해)
+            ProductDTO productDTO = getProductDTOByCode(productCode);
+            if (productDTO == null) {
+                return false;
+            }
+
+            // 카테고리 매핑 삭제
+            try {
+                mappingService.deleteAllMappingsByProductCode(productCode);
+            } catch (Exception e) {
+                log.error("상품 관련 카테고리 매핑 삭제 중 오류 발생: {}", e.getMessage(), e);
+                // 매핑 삭제 실패해도 계속 진행
+            }
+
+            // 상품 삭제
+            boolean success = deleteProduct(productCode);
+
+            // 이미지 파일 삭제
+            if (success && productDTO.getFileId() != null && !productDTO.getFileId().isEmpty()) {
+                try {
+                    fileService.deleteFile(productDTO.getFileId());
+                } catch (Exception e) {
+                    log.warn("상품은 삭제되었으나 이미지 삭제 실패: {}", e.getMessage());
+                    // 이미지 삭제 실패해도 성공으로 간주
+                }
+            }
+
+            return success;
+        } catch (Exception e) {
+            log.error("상품 및 관련 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
             return false;
         }
     }

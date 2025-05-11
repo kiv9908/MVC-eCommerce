@@ -1,6 +1,7 @@
 package service;
 
 import domain.dao.UserDAO;
+import domain.dto.PageDTO;
 import domain.dto.UserDTO;
 import exception.*;
 import lombok.extern.slf4j.Slf4j;
@@ -125,4 +126,53 @@ public class UserService {
             return false;
         }
     }
+
+    /**
+     * 페이지네이션 처리된 사용자 목록 조회
+     */
+    public List<UserDTO> getUsersWithPagination(int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return userDAO.findAllWithPagination(offset, pageSize);
+    }
+
+    /**
+     * 전체 사용자 개수 조회
+     */
+    public int getTotalUserCount() {
+        return userDAO.countAll();
+    }
+
+    /**
+     * PageDTO 설정
+     */
+    public PageDTO setupUserPage(PageDTO pageDTO) {
+        // 전체 사용자 개수 조회
+        pageDTO.setTotalCount(getTotalUserCount());
+
+        // 페이지네이션 계산
+        pageDTO.calculatePagination();
+
+        return pageDTO;
+    }
+
+    /**
+     * 요청 파라미터에서 PageDTO 생성
+     */
+    public PageDTO createPageDTOFromParameters(String pageParam) {
+        PageDTO pageDTO = new PageDTO();
+
+        // 페이지 번호 설정
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                int currentPage = Integer.parseInt(pageParam);
+                pageDTO.setCurrentPage(Math.max(1, currentPage));
+            } catch (NumberFormatException e) {
+                // 잘못된 형식이면 기본값 1 사용
+                pageDTO.setCurrentPage(1);
+            }
+        }
+
+        return pageDTO;
+    }
+
 }

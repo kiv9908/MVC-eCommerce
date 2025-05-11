@@ -21,7 +21,7 @@ public class AppConfig implements Serializable {
     private final ContentDAO contentDAO;
 
     private final UserService userService;
-    private final ProductService productService;
+    private ProductService productService;
     private final AuthService authService;
     private final MappingService mappingService;
     private final CategoryService categoryService;
@@ -44,9 +44,11 @@ public class AppConfig implements Serializable {
         // 서비스 계층 초기화 및 의존성 주입
         this.userService = new UserService(userDAO);
         this.authService = new AuthService(userDAO);
-        this.productService = new ProductService(productDAO);
         this.mappingService = new MappingService(mappingDAO);
         this.categoryService = new CategoryService(categoryDAO);
+
+        this.productService = null;
+        this.fileService = null;
     }
 
     /**
@@ -74,15 +76,19 @@ public class AppConfig implements Serializable {
         return getInstance();
     }
 
-    /**
-     * FileService 초기화 메서드 (웹 애플리케이션 시작 시 호출)
-     * @param uploadPath 파일 업로드 경로
-     * @param useDbStorage DB 저장소 사용 여부
-     */
-    public void initFileService(String uploadPath, boolean useDbStorage) {
-        if (this.fileService == null) {
-            this.fileService = new FileService(uploadPath, useDbStorage);
+    public void initializeServices(String uploadPath, boolean useDbStorage) {
+        // FileService 초기화
+        this.fileService = new FileService(uploadPath, useDbStorage);
+
+        // FileService에 의존하는 서비스 초기화
+        this.productService = new ProductService(productDAO, mappingService, fileService);
+    }
+
+    public ProductService getProductService() {
+        if (this.productService == null) {
+            throw new IllegalStateException("ProductService가 초기화되지 않았습니다. initializeServices()를 먼저 호출해주세요.");
         }
+        return this.productService;
     }
 
     /**

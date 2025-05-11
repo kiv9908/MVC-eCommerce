@@ -11,20 +11,20 @@ import javax.servlet.annotation.WebListener;
 @Slf4j
 @WebListener
 public class AppInitializer implements ServletContextListener {
-    
+
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
         String uploadPath = context.getRealPath("/uploads");
-        
+
         log.info("웹 애플리케이션 초기화 중...");
         log.info("업로드 경로: {}", uploadPath);
-        
-        // FileService 초기화 (기본적으로 파일 시스템 저장 사용)
-        boolean useDbStorage = true; // 원하는 설정으로 변경 가능
-        AppConfig.getInstance().initFileService(uploadPath, useDbStorage);
-        
-        log.info("FileService 초기화 완료");
+
+        // 2단계 초기화 호출
+        AppConfig appConfig = AppConfig.getInstance();
+        appConfig.initializeServices(uploadPath, true);
+
+        log.info("서비스 초기화 완료");
     }
     
     @Override

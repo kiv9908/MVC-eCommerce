@@ -42,4 +42,18 @@ public interface UserDAO {
      * @param userDTO 권한을 변경할 사용자 객체
      */
     void modifyUserRole(UserDTO userDTO);
+
+    /**
+     * 페이지네이션을 적용한 사용자 목록 조회
+     * @param offset 시작 오프셋
+     * @param limit 조회할 항목 수
+     * @return 페이지네이션이 적용된 사용자 목록
+     */
+    List<UserDTO> findAllWithPagination(int offset, int limit);
+
+    /**
+     * 전체 사용자 수 조회
+     * @return 전체 사용자 수
+     */
+    int countAll();
 }

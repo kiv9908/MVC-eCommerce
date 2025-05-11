@@ -2,12 +2,11 @@ package command.admin.product;
 
 import command.Command;
 import config.AppConfig;
+import domain.dto.PageDTO;
 import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
 import service.ProductService;
-import domain.dao.ProductDAO;
-import domain.dao.ProductDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -36,30 +35,30 @@ public class ProductListCommand implements Command {
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         log.debug("상품 목록 조회 실행");
 
-        // FileService 초기화 코드 제거 (이미 생성자에서 초기화)
-
         try {
-            // 정렬 옵션 처리
-            String sortBy = request.getParameter("sortBy");
-            List<ProductDTO> productDTOs;
+            // 요청 파라미터에서 PageDTO 생성
+            PageDTO pageDTO = productService.createPageDTOFromParameters(
+                    request.getParameter("page"),
+                    request.getParameter("sortBy"),
+                    request.getParameter("keyword")
+            );
 
-            if ("priceAsc".equals(sortBy)) {
-                productDTOs = productService.getAllProductDTOsOrderByPrice(true);
-            } else if ("priceDesc".equals(sortBy)) {
-                productDTOs = productService.getAllProductDTOsOrderByPrice(false);
+            // 서비스 계층에서 페이지네이션 설정
+            pageDTO = productService.setupProductPage(pageDTO);
+
+            // 상품 목록 조회
+            List<ProductDTO> products = productService.getProductsByPage(pageDTO);
+
+            // 결과 저장
+            if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
+                request.setAttribute("searchResults", products);
+                request.setAttribute("searchKeyword", pageDTO.getKeyword());
             } else {
-                productDTOs = productService.getAllProductDTOs();
+                request.setAttribute("products", products);
             }
 
-            request.setAttribute("products", productDTOs);
-
-            // 검색 기능
-            String searchKeyword = request.getParameter("keyword");
-            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                List<ProductDTO> searchResults = productService.searchProductDTOs(searchKeyword);
-                request.setAttribute("searchResults", searchResults);
-                request.setAttribute("searchKeyword", searchKeyword);
-            }
+            // PageDTO를 request에 저장
+            request.setAttribute("pageDTO", pageDTO);
 
             return "/WEB-INF/views/admin/product/productList.jsp";
         } catch (Exception e) {

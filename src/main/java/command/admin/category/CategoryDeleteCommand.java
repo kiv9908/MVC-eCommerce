@@ -11,6 +11,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 @Slf4j
 public class CategoryDeleteCommand implements Command {
@@ -27,38 +29,53 @@ public class CategoryDeleteCommand implements Command {
         try {
             // URL에서 카테고리 ID 추출
             String pathInfo = request.getPathInfo();
-            // ID 추출 - 패턴: /edit/123 또는 /6 에서 숫자 부분 추출
             String categoryIdStr;
             if (pathInfo.contains("/delete/")) {
-                // URL에 /edit/가 포함된 경우 - /edit/ 다음 부분 추출
                 categoryIdStr = pathInfo.substring(pathInfo.lastIndexOf("/") + 1);
             } else if (pathInfo.startsWith("/")) {
-                // 시작이 /인 경우 - 슬래시 제거
                 categoryIdStr = pathInfo.substring(1);
             } else {
-                // 그 외의 경우 그대로 사용
                 categoryIdStr = pathInfo;
             }
 
             log.info("categoryIdStr: {}", categoryIdStr);
-
             Long categoryId = Long.parseLong(categoryIdStr);
             log.info("categoryId : {}", categoryId);
 
+            // 페이지 정보 가져오기
+            String page = request.getParameter("page");
+            String keyword = request.getParameter("keyword");
 
             // 카테고리 삭제
             boolean success = categoryService.deleteCategory(categoryId);
 
-            if (success) {
-                return "redirect:" + request.getContextPath() + "/admin/category/list?success=delete";
-            } else {
-                return "redirect:" + request.getContextPath() + "/admin/category/list?error=delete";
+            // 리다이렉트 URL 구성
+            StringBuilder redirectUrlBuilder = new StringBuilder();
+            redirectUrlBuilder.append("redirect:").append(request.getContextPath())
+                    .append("/admin/category/list?")
+                    .append(success ? "success=delete" : "error=delete");
+
+            // 페이지 정보 추가
+            if (page != null && !page.isEmpty()) {
+                redirectUrlBuilder.append("&page=").append(page);
             }
+
+            // 검색어 추가
+            if (keyword != null && !keyword.isEmpty()) {
+                try {
+                    String encodedKeyword = URLEncoder.encode(keyword, "UTF-8");
+                    redirectUrlBuilder.append("&keyword=").append(encodedKeyword);
+                } catch (UnsupportedEncodingException e) {
+                    log.error("키워드 인코딩 오류", e);
+                }
+            }
+
+            return redirectUrlBuilder.toString();
         } catch (NumberFormatException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "잘못된 카테고리 ID 형식입니다.");
             return null;
         } catch (Exception e) {
-            log.info("카테고리 삭제 중 오류 발생: {}", e.getMessage());
+            log.error("카테고리 삭제 중 오류 발생: {}", e.getMessage(), e);
             return "redirect:" + request.getContextPath() + "/admin/category/list?error=delete";
         }
     }

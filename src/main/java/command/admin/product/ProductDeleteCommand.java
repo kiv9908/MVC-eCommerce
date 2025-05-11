@@ -2,6 +2,7 @@ package command.admin.product;
 
 import command.Command;
 import config.AppConfig;
+import domain.dto.PageDTO;
 import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
@@ -12,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 public class ProductDeleteCommand implements Command {
@@ -35,41 +38,39 @@ public class ProductDeleteCommand implements Command {
             String pathInfo = request.getPathInfo();
             String productCode = pathInfo.substring("/delete/".length());
 
-            // 상품 정보 조회 (이미지 ID 확인을 위해)
-            ProductDTO productDTO = productService.getProductDTOByCode(productCode);
+            // 요청 파라미터에서 PageDTO 생성
+            PageDTO pageDTO = productService.createPageDTOFromParameters(
+                    request.getParameter("page"),
+                    request.getParameter("sortBy"),
+                    request.getParameter("keyword")
+            );
 
-            // 먼저 상품에 연결된 모든 카테고리 매핑 삭제
-            try {
-                // 개선된 메서드 사용: 한 번에 모든 매핑 삭제
-                boolean mappingsDeleted = mappingService.deleteAllMappingsByProductCode(productCode);
-                if (mappingsDeleted) {
-                    log.info("상품 관련 카테고리 매핑 삭제 완료: ProductCode={}", productCode);
-                } else {
-                    log.warn("상품 관련 카테고리 매핑 삭제 실패: ProductCode={}", productCode);
-                }
-            } catch (Exception e) {
-                log.error("상품 관련 카테고리 매핑 삭제 중 오류 발생: {}", e.getMessage(), e);
-                // 매핑 삭제 실패해도 상품 삭제는 계속 진행
+            // 상품 및 관련 데이터 삭제
+            boolean success = productService.deleteProductWithRelations(productCode);
+
+            // 리다이렉트 URL 생성
+            StringBuilder redirectUrlBuilder = new StringBuilder();
+            redirectUrlBuilder.append("redirect:").append(request.getContextPath())
+                    .append("/admin/product/list?")
+                    .append(success ? "success=delete" : "error=delete");
+
+            // 페이지 정보 추가
+            if (pageDTO.getCurrentPage() > 0) {
+                redirectUrlBuilder.append("&page=").append(pageDTO.getCurrentPage());
             }
 
-            // 상품 삭제
-            boolean success = productService.deleteProduct(productCode);
-
-            if (success) {
-                // 연결된 이미지 파일 삭제
-                if (productDTO != null && productDTO.getFileId() != null && !productDTO.getFileId().isEmpty()) {
-                    boolean fileDeleted = fileService.deleteFile(productDTO.getFileId());
-                    if (fileDeleted) {
-                        log.info("상품 이미지 삭제 완료: ProductCode={}, FileID={}", productCode, productDTO.getFileId());
-                    } else {
-                        log.warn("상품은 삭제되었으나 이미지 삭제 실패: ProductCode={}, FileID={}", productCode, productDTO.getFileId());
-                    }
-                }
-
-                return "redirect:" + request.getContextPath() + "/admin/product/list?success=delete";
-            } else {
-                return "redirect:" + request.getContextPath() + "/admin/product/list?error=delete";
+            // 정렬 조건 추가
+            if (pageDTO.getSortBy() != null && !pageDTO.getSortBy().isEmpty()) {
+                redirectUrlBuilder.append("&sortBy=").append(pageDTO.getSortBy());
             }
+
+            // 검색 키워드 추가 (URL 인코딩 적용)
+            if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().isEmpty()) {
+                String encodedKeyword = URLEncoder.encode(pageDTO.getKeyword(), StandardCharsets.UTF_8.toString());
+                redirectUrlBuilder.append("&keyword=").append(encodedKeyword);
+            }
+
+            return redirectUrlBuilder.toString();
         } catch (Exception e) {
             log.error("상품 삭제 중 오류 발생: {}", e.getMessage(), e);
             return "redirect:" + request.getContextPath() + "/admin/product/list?error=delete";
