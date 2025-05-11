@@ -2,18 +2,16 @@ package command.admin.product;
 
 import command.Command;
 import config.AppConfig;
+import domain.dto.PageDTO;
 import domain.dto.ProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import service.FileService;
 import service.ProductService;
-import domain.dao.ProductDAO;
-import domain.dao.ProductDAOImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -38,78 +36,29 @@ public class ProductListCommand implements Command {
         log.debug("상품 목록 조회 실행");
 
         try {
-            // 페이지네이션 파라미터 처리
-            int currentPage = 1;
-            int pageSize = 10; // 페이지당 상품 수
+            // 요청 파라미터에서 PageDTO 생성
+            PageDTO pageDTO = productService.createPageDTOFromParameters(
+                    request.getParameter("page"),
+                    request.getParameter("sortBy"),
+                    request.getParameter("keyword")
+            );
 
-            if (request.getParameter("page") != null) {
-                try {
-                    currentPage = Integer.parseInt(request.getParameter("page"));
-                    if (currentPage < 1) {
-                        currentPage = 1;
-                    }
-                } catch (NumberFormatException e) {
-                    log.warn("잘못된 페이지 번호: {}", request.getParameter("page"));
-                }
-            }
+            // 서비스 계층에서 페이지네이션 설정
+            pageDTO = productService.setupProductPage(pageDTO);
 
-            // 정렬 옵션 처리
-            String sortBy = request.getParameter("sortBy");
+            // 상품 목록 조회
+            List<ProductDTO> products = productService.getProductsByPage(pageDTO);
 
-            // 검색 기능
-            String searchKeyword = request.getParameter("keyword");
-
-            List<ProductDTO> pagedProducts;
-            int totalCount;
-            int totalPages;
-
-            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                // 검색 결과에 대한 페이지네이션
-                totalCount = productService.getSearchResultCount(searchKeyword);
-
-                if ("priceAsc".equals(sortBy)) {
-                    // 가격 오름차순 정렬 + 검색
-                    pagedProducts = productService.searchProductDTOsOrderByPriceWithPagination(searchKeyword, true, currentPage, pageSize);
-                } else if ("priceDesc".equals(sortBy)) {
-                    // 가격 내림차순 정렬 + 검색
-                    pagedProducts = productService.searchProductDTOsOrderByPriceWithPagination(searchKeyword, false, currentPage, pageSize);
-                } else {
-                    // 기본 검색 결과
-                    pagedProducts = productService.searchProductDTOsWithPagination(searchKeyword, currentPage, pageSize);
-                }
-
-                request.setAttribute("searchResults", pagedProducts);
-                request.setAttribute("searchKeyword", searchKeyword);
+            // 결과 저장
+            if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
+                request.setAttribute("searchResults", products);
+                request.setAttribute("searchKeyword", pageDTO.getKeyword());
             } else {
-                // 전체 상품에 대한 페이지네이션
-                totalCount = productService.getTotalProductCount();
-
-                if ("priceAsc".equals(sortBy)) {
-                    pagedProducts = productService.getProductDTOsOrderByPriceWithPagination(true, currentPage, pageSize);
-                } else if ("priceDesc".equals(sortBy)) {
-                    pagedProducts = productService.getProductDTOsOrderByPriceWithPagination(false, currentPage, pageSize);
-                } else {
-                    pagedProducts = productService.getProductDTOsWithPagination(currentPage, pageSize);
-                }
-
-                request.setAttribute("products", pagedProducts);
+                request.setAttribute("products", products);
             }
 
-            // 총 페이지 수 계산
-            totalPages = (int) Math.ceil((double) totalCount / pageSize);
-            int startPage = Math.max(1, currentPage - 2);
-            int endPage = Math.min(totalPages, startPage + 4);
-            startPage = Math.max(1, endPage - 4);
-
-            // 페이지네이션 정보 설정
-            request.setAttribute("currentPage", currentPage);
-            request.setAttribute("totalPages", totalPages);
-            request.setAttribute("totalCount", totalCount);
-            request.setAttribute("pageSize", pageSize);
-            request.setAttribute("startPage", startPage);
-            request.setAttribute("endPage", endPage);
-            // 정렬 옵션 저장 - 페이지 템플릿에서 사용하기 위해
-            request.setAttribute("sortBy", sortBy);
+            // PageDTO를 request에 저장
+            request.setAttribute("pageDTO", pageDTO);
 
             return "/WEB-INF/views/admin/product/productList.jsp";
         } catch (Exception e) {
@@ -117,6 +66,5 @@ public class ProductListCommand implements Command {
             request.setAttribute("errorMessage", "상품 목록을 불러오는 중 오류가 발생했습니다.");
             return "/WEB-INF/views/common/error.jsp";
         }
-
     }
 }
