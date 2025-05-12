@@ -37,7 +37,7 @@
 <%--        </a>--%>
 <%--      </li>--%>
       <li>
-        <a href="#" class="nav-link text-white">
+        <a href="${pageContext.request.contextPath}/admin/order/list" class="nav-link text-white">
           <i class="fas fa-shopping-cart me-2"></i>
           주문 관리
         </a>
