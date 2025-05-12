@@ -94,9 +94,11 @@
                         <select class="form-select" id="categoryId" name="categoryId" required>
                             <option value="" selected disabled>카테고리를 선택하세요</option>
                             <c:forEach var="category" items="${categories}">
-                                <option value="${category.id}" ${mapping.categoryId == category.id ? 'selected' : ''}>
-                                        ${category.fullName}
-                                </option>
+                                <c:if test="${category.useYn eq 'Y'}">
+                                    <option value="${category.id}" ${mapping.categoryId == category.id ? 'selected' : ''}>
+                                            ${category.fullName}
+                                    </option>
+                                </c:if>
                             </c:forEach>
                         </select>
                         <div class="form-text">상품에 매핑할 카테고리를 선택하세요.</div>

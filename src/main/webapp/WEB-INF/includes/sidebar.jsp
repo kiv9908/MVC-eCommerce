@@ -29,13 +29,13 @@
           카테고리 관리
         </a>
       </li>
-<%--      <li>--%>
-<%--        <a href="${pageContext.request.contextPath}/admin/mapping/list"--%>
-<%--           class="nav-link ${pageId == 'mapping' ? 'active' : 'text-white'}">--%>
-<%--          <i class="fas fa-sitemap me-2"></i>--%>
-<%--          카테고리 매핑 관리--%>
-<%--        </a>--%>
-<%--      </li>--%>
+      <li>
+        <a href="${pageContext.request.contextPath}/admin/mapping/list"
+           class="nav-link ${pageId == 'mapping' ? 'active' : 'text-white'}">
+          <i class="fas fa-sitemap me-2"></i>
+          카테고리 매핑 관리
+        </a>
+      </li>
       <li>
         <a href="${pageContext.request.contextPath}/admin/order/list" class="nav-link text-white">
           <i class="fas fa-shopping-cart me-2"></i>
