@@ -1,4 +1,4 @@
-package command.user;
+package command.user.account;
 
 import command.Command;
 import config.AppConfig;

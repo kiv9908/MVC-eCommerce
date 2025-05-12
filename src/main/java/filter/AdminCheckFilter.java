@@ -12,6 +12,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.RequestDispatcher;
 
 public class AdminCheckFilter implements Filter {
 
@@ -28,13 +29,15 @@ public class AdminCheckFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         HttpSession session = httpRequest.getSession(false);
 
+        boolean isLoggedIn = false;
         boolean isAdmin = false;
 
         // 세션이 존재하고 사용자가 로그인되어 있는지 확인
         if (session != null && session.getAttribute("user") != null) {
+            isLoggedIn = true;
             UserDTO userDTO = (UserDTO) session.getAttribute("user");
 
-            // 또는 세션에 isAdmin 속성이 이미 설정되어 있는지 확인
+
             if (session.getAttribute("isAdmin") != null) {
                 isAdmin = (Boolean) session.getAttribute("isAdmin");
             }
@@ -43,8 +46,17 @@ public class AdminCheckFilter implements Filter {
         if (isAdmin) {
             // 관리자인 경우, 요청한 페이지로 계속 진행
             chain.doFilter(request, response);
+        } else if (isLoggedIn) {
+            String alertScript = "<script>alert('관리자만 접근 가능합니다.'); history.back();</script>";
+            httpResponse.setContentType("text/html;charset=UTF-8");
+            httpResponse.getWriter().write(alertScript);
         } else {
-            // 관리자가 아닌 경우, 현재 요청한 URL을 세션에 저장
+            // 로그인이 안 된 경우, 현재 요청한 URL을 세션에 저장
+            // 세션이 없으면 세션 생성
+            if (session == null) {
+                session = httpRequest.getSession(true);
+            }
+
             String requestURI = httpRequest.getRequestURI();
             String queryString = httpRequest.getQueryString();
 
@@ -53,16 +65,16 @@ public class AdminCheckFilter implements Filter {
                 requestURI += "?" + queryString;
             }
 
-            // 세션이 없으면 세션 생성
-            if (session == null) {
-                session = httpRequest.getSession(true);
-            }
-
             // 원래 요청했던 URL을 세션에 저장
             session.setAttribute("redirectAfterLogin", requestURI);
 
             // 로그인 페이지로 리다이렉트
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/user/login");
         }
+    }
+
+    @Override
+    public void destroy() {
+        // 필터 종료 로직
     }
 }

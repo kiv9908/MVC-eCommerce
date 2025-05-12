@@ -1,4 +1,4 @@
-package command.user;
+package command.user.auth;
 
 import command.Command;
 import lombok.extern.slf4j.Slf4j;
