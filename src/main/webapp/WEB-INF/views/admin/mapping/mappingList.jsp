@@ -88,14 +88,55 @@
               </td>
             </tr>
           </c:if>
+
+
+
+
           </tbody>
         </table>
+
+        <!-- 페이지네이션 -->
+        <div class="d-flex justify-content-center mt-4">
+          <ul class="pagination">
+            <!-- 이전 페이지 버튼 -->
+            <li class="page-item ${pageDTO.currentPage == 1 ? 'disabled' : ''}">
+              <a class="page-link" href="${pageContext.request.contextPath}/admin/mapping/list?page=${pageDTO.currentPage - 1}${not empty pageDTO.keyword ? '&keyword='.concat(URLEncoder.encode(pageDTO.keyword, 'UTF-8')) : ''}${not empty pageDTO.sortBy ? '&sortBy='.concat(pageDTO.sortBy) : ''}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            <!-- 페이지 번호 -->
+            <c:forEach begin="${pageDTO.startPage}" end="${pageDTO.endPage}" var="pageNum">
+              <li class="page-item ${pageNum == pageDTO.currentPage ? 'active' : ''}">
+                <a class="page-link" href="${pageContext.request.contextPath}/admin/mapping/list?page=${pageNum}${not empty pageDTO.keyword ? '&keyword='.concat(URLEncoder.encode(pageDTO.keyword, 'UTF-8')) : ''}${not empty pageDTO.sortBy ? '&sortBy='.concat(pageDTO.sortBy) : ''}">${pageNum}</a>
+              </li>
+            </c:forEach>
+
+            <!-- 다음 페이지 버튼 -->
+            <li class="page-item ${pageDTO.currentPage == pageDTO.totalPages ? 'disabled' : ''}">
+              <a class="page-link" href="${pageContext.request.contextPath}/admin/mapping/list?page=${pageDTO.currentPage + 1}${not empty pageDTO.keyword ? '&keyword='.concat(URLEncoder.encode(pageDTO.keyword, 'UTF-8')) : ''}${not empty pageDTO.sortBy ? '&sortBy='.concat(pageDTO.sortBy) : ''}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- 페이지 정보 표시 -->
+        <div class="text-center mt-2 text-muted">
+          <c:choose>
+            <c:when test="${pageDTO.totalCount > 0}">
+              <small>총 ${pageDTO.totalCount}개 매핑 중 ${pageDTO.startRow} ~ ${pageDTO.endRow}개 표시</small>
+            </c:when>
+            <c:otherwise>
+              <small>표시할 매핑이 없습니다.</small>
+            </c:otherwise>
+          </c:choose>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
