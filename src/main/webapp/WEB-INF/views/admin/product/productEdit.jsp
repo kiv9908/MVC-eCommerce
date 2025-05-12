@@ -117,47 +117,20 @@
                         </div>
                     </div>
 
-                    <!-- 카테고리 매핑 섹션 -->
+                    <!-- 카테고리 선택 섹션 -->
                     <div class="mb-4">
-                        <label class="form-label">카테고리 매핑</label>
+                        <label for="categorySelect" class="form-label">카테고리 <span class="text-danger">*</span></label>
                         <div class="card">
                             <div class="card-body">
-                                <!-- 현재 연결된 카테고리 목록 -->
-                                <div class="mb-3">
-                                    <h6>현재 연결된 카테고리</h6>
-                                    <div id="categoryMappingList" class="mb-3">
-                                        <c:if test="${empty productCategoryMappings}">
-                                            <p class="text-muted">연결된 카테고리가 없습니다.</p>
-                                        </c:if>
-                                        <c:forEach items="${productCategoryMappings}" var="category">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="me-auto">${category.fullName}</span>
-                                                <input type="hidden" name="existingCategoryIds" value="${category.id}">
-                                                <button type="button" class="btn btn-sm btn-outline-danger remove-mapping"
-                                                        data-mapping-id="${category.id}">
-                                                    <i class="fas fa-times"></i> 삭제
-                                                </button>
-                                            </div>
-                                        </c:forEach>
-                                    </div>
-                                </div>
-
-                                <!-- 카테고리 추가 -->
-                                <div>
-                                    <h6>카테고리 추가</h6>
-                                    <div class="input-group">
-                                        <select class="form-select" id="categorySelect" name="newCategoryId">
-                                            <option value="">카테고리 선택</option>
-                                            <c:forEach items="${availableCategories}" var="category">
-                                                <option value="${category.id}">${category.fullName}</option>
-                                            </c:forEach>
-                                        </select>
-                                        <button class="btn btn-outline-secondary" type="button" id="addCategoryMapping">
-                                            <i class="fas fa-plus"></i> 추가
-                                        </button>
-                                    </div>
-                                    <div class="form-text">상품에 연결할 카테고리를 선택하고 추가 버튼을 클릭하세요.</div>
-                                </div>
+                                <select class="form-select" id="categorySelect" name="categoryId" required>
+                                    <option value="">카테고리 선택</option>
+                                    <c:forEach items="${availableCategories}" var="category">
+                                        <option value="${category.id}" 
+                                            <c:if test="${not empty productCategoryMappings && productCategoryMappings[0].id eq category.id}">selected</c:if>
+                                        >${category.fullName}</option>
+                                    </c:forEach>
+                                </select>
+                                <div class="form-text">상품에 연결할 카테고리를 선택하세요. 한 개의 카테고리만 선택 가능합니다.</div>
                             </div>
                         </div>
                     </div>
