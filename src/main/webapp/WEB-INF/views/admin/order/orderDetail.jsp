@@ -90,23 +90,20 @@
                         <div>
                             <span class="badge bg-primary">주문번호: ${order.orderId}</span>
                             <c:choose>
-                                <c:when test="${order.orderStatus eq 'ORD1'}">
-                                    <span class="badge bg-info badge-order-status">결제완료</span>
+                                <c:when test="${order.orderStatus eq '10'}">
+                                    <span class="badge bg-info badge-order-status">주문 완료</span>
                                 </c:when>
-                                <c:when test="${order.orderStatus eq 'ORD2'}">
-                                    <span class="badge bg-warning badge-order-status">상품준비중</span>
+                                <c:when test="${order.orderStatus eq '30'}">
+                                    <span class="badge bg-warning badge-order-status">배송 전</span>
                                 </c:when>
-                                <c:when test="${order.orderStatus eq 'ORD3'}">
-                                    <span class="badge bg-primary badge-order-status">배송중</span>
+                                <c:when test="${order.orderStatus eq '40'}">
+                                    <span class="badge bg-primary badge-order-status">배송 중</span>
                                 </c:when>
-                                <c:when test="${order.orderStatus eq 'ORD4'}">
-                                    <span class="badge bg-success badge-order-status">배송완료</span>
+                                <c:when test="${order.orderStatus eq '50'}">
+                                    <span class="badge bg-success badge-order-status">배송 완료</span>
                                 </c:when>
-                                <c:when test="${order.orderStatus eq 'ORD5'}">
-                                    <span class="badge bg-danger badge-order-status">취소</span>
-                                </c:when>
-                                <c:when test="${order.orderStatus eq 'ORD6'}">
-                                    <span class="badge bg-secondary badge-order-status">환불</span>
+                                <c:when test="${order.orderStatus eq '60'}">
+                                    <span class="badge bg-danger badge-order-status">주문 취소</span>
                                 </c:when>
                                 <c:otherwise>
                                     <span class="badge bg-dark badge-order-status">${order.orderStatus}</span>
@@ -136,6 +133,9 @@
                                             <c:choose>
                                                 <c:when test="${order.paymentStatus eq '20'}">
                                                     <span>결제완료</span>
+                                                </c:when>
+                                                <c:when test="${order.paymentStatus eq '70'}">
+                                                    <span>결제취소</span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span>${order.paymentStatus}</span>

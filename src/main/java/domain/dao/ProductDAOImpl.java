@@ -1,12 +1,13 @@
 package domain.dao;
 
 import domain.dto.ProductDTO;
+import lombok.extern.slf4j.Slf4j;
 import util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+@Slf4j
 public class ProductDAOImpl implements ProductDAO {
 
     public ProductDAOImpl() {
@@ -550,5 +551,53 @@ public class ProductDAOImpl implements ProductDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int getProductStock(String productCode) {
+        int stock = 0;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "SELECT qt_stock FROM tb_product WHERE no_product = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, productCode);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                stock = rs.getInt("qt_stock");
+            }
+        } catch (SQLException e) {
+            log.error("상품 재고 조회 중 오류 발생: " + e.getMessage(), e);
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+
+        return stock;
+    }
+
+    @Override
+    public int updateProductStock(String productCode, int newStock) {
+        int result = 0;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            String sql = "UPDATE tb_product SET qt_stock = ? WHERE no_product = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, newStock);
+            pstmt.setString(2, productCode);
+            result = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            log.error("상품 재고 업데이트 중 오류 발생: " + e.getMessage(), e);
+        } finally {
+            closeResources(null, pstmt, conn);
+        }
+
+        return result;
     }
 }

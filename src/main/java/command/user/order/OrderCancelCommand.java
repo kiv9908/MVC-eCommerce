@@ -1,6 +1,7 @@
 package command.user.order;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -9,8 +10,11 @@ import javax.servlet.http.HttpSession;
 
 import command.Command;
 import domain.dto.OrderDTO;
+import domain.dto.OrderItemDTO;
 import domain.dto.UserDTO;
 import service.OrderService;
+import service.ProductService;
+import config.AppConfig;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,12 +25,14 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderCancelCommand implements Command {
 
     private OrderService orderService;
+    private ProductService productService;
 
     /**
      * 생성자: OrderService 초기화
      */
     public OrderCancelCommand() {
         this.orderService = new OrderService();
+        this.productService = AppConfig.getInstance().getProductService();
     }
 
     @Override
@@ -75,17 +81,52 @@ public class OrderCancelCommand implements Command {
             }
 
             // 주문 취소 가능 여부 확인 (배송 전 상태일 경우만 취소 가능)
-            if (!"ORD1".equals(order.getOrderStatus()) && !"ORD2".equals(order.getOrderStatus())) {
+            if (!"30".equals(order.getOrderStatus())) {
                 request.setAttribute("errorMessage", "배송이 시작된 주문은 취소할 수 없습니다. 고객센터로 문의해주세요.");
                 return "/WEB-INF/views/common/error.jsp";
             }
 
-            // 주문 상태 업데이트 (취소 상태로)
-            boolean success = orderService.updateOrderStatus(orderId, "ORD5");
+            // 1. 주문 항목 가져오기
+            List<OrderItemDTO> orderItems = orderService.getOrderItems(orderId);
+            if (orderItems == null || orderItems.isEmpty()) {
+                log.warn("주문 항목이 없습니다. 주문 ID: {}", orderId);
+                request.setAttribute("errorMessage", "주문 항목이 없습니다.");
+                return "/WEB-INF/views/common/error.jsp";
+            }
 
-            // 결제 상태도 취소로 업데이트
+            // 2. 각 항목별로 재고 원복
+            boolean allStockUpdated = true;
+            StringBuilder failedProducts = new StringBuilder();
+
+            for (OrderItemDTO item : orderItems) {
+                // 새로 추가한 메서드를 호출하여 재고 증가
+                boolean updated = productService.increaseProductStock(item.getProductCode(), item.getQuantity());
+
+                if (!updated) {
+                    log.error("상품 재고 원복 실패: 상품코드={}, 수량={}", item.getProductCode(), item.getQuantity());
+                    allStockUpdated = false;
+                    if (failedProducts.length() > 0) {
+                        failedProducts.append(", ");
+                    }
+                    failedProducts.append(item.getProductName() != null ? item.getProductName() : item.getProductCode());
+                } else {
+                    log.info("상품 재고 원복 성공: 상품코드={}, 복원수량={}",
+                            item.getProductCode(), item.getQuantity());
+                }
+            }
+
+            if (!allStockUpdated) {
+                log.warn("일부 상품의 재고 원복이 실패했습니다. 주문ID: {}, 실패상품: {}",
+                        orderId, failedProducts.toString());
+                // 실패해도 주문 취소는 진행 (관리자 확인 필요)
+            }
+
+            // 3. 주문 상태 업데이트 (취소 상태로)
+            boolean success = orderService.updateOrderStatus(orderId, "60");
+
+            // 4. 결제 상태도 취소로 업데이트
             if (success) {
-                success = orderService.updatePaymentStatus(orderId, "PAY3");
+                success = orderService.updatePaymentStatus(orderId, "70");
             }
 
             if (success) {

@@ -96,6 +96,9 @@
                                             <c:when test="${order.orderStatus eq '50'}">
                                                 <span>배송 완료</span>
                                             </c:when>
+                                            <c:when test="${order.orderStatus eq '60'}">  <!-- 코드 일관성을 위해 '70'에서 '60'으로 수정 -->
+                                                <span>주문 취소</span>
+                                            </c:when>
                                             <c:otherwise>
                                                 <span>${order.orderStatus}</span>
                                             </c:otherwise>
@@ -105,6 +108,9 @@
                                         <c:choose>
                                             <c:when test="${order.paymentStatus eq '20'}">
                                                 <span>결제완료</span>
+                                            </c:when>
+                                            <c:when test="${order.paymentStatus eq '70'}">
+                                                <span>결제취소</span>
                                             </c:when>
                                             <c:otherwise>
                                                 <span>${order.paymentStatus}</span>

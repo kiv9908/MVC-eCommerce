@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import service.BasketService;
 import service.OrderService;
 import config.AppConfig;
+import service.ProductService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ public class OrderCreateCommand implements Command {
 
     private OrderService orderService;
     private BasketService basketService;
+    private ProductService productService;
 
     // 주문 상태 및 결제 상태 코드
     private static final String ORDER_STATUS_COMPLETE = "10"; // 주문완료
@@ -40,7 +42,10 @@ public class OrderCreateCommand implements Command {
         // BasketService 초기화
         BasketDAOImpl basketDAO = new BasketDAOImpl();
         ProductDAOImpl productDAO = new ProductDAOImpl();
-        this.basketService = new BasketService(basketDAO, productDAO);    }
+        this.basketService = new BasketService(basketDAO, productDAO);
+        this.productService = AppConfig.getInstance().getProductService();
+
+    }
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -117,6 +122,25 @@ public class OrderCreateCommand implements Command {
                 return "/WEB-INF/views/common/error.jsp";
             }
 
+            boolean allInStock = true;
+            List<String> outOfStockProducts = new ArrayList<>();
+
+            for (OrderItemDTO item : orderItems) {
+                int stock = productService.getProductStock(item.getProductCode());
+                if (stock < item.getQuantity()) {
+                    allInStock = false;
+                    outOfStockProducts.add(item.getProductName());
+                }
+            }
+
+            // 재고 부족 시 주문 취소
+            if (!allInStock) {
+                request.setAttribute("errorMessage", "다음 상품의 재고가 부족하여 주문이 취소되었습니다: " +
+                        String.join(", ", outOfStockProducts));
+                return "/WEB-INF/views/common/error.jsp";
+            }
+
+
             // 주문 생성
             String orderId = orderService.createOrder(orderDTO);
 
@@ -133,6 +157,11 @@ public class OrderCreateCommand implements Command {
                 item.setRegisterId(userId);
 
                 boolean result = orderService.createOrderItem(item);
+                // 주문 성공 시 재고 차감
+                if (result) {
+                    productService.updateProductStock(item.getProductCode(),
+                            item.getQuantity());
+                }
                 log.info("주문 항목 생성 결과: {}", result);
 
                 if (!result) {
@@ -143,22 +172,67 @@ public class OrderCreateCommand implements Command {
             // 주문 금액 업데이트 (실제 주문 항목 기준)
             orderService.updateOrderAmount(orderId);
 
-            // 장바구니에서 주문한 경우, 주문한 상품 장바구니에서 제거
-            if (request.getParameterValues("itemId") != null) {
-                String[] itemIdsArray = request.getParameterValues("itemId");
-                List<Long> itemIdList = new ArrayList<>();
+            // 장바구니에서 주문한 경우, 주문한 상품만 장바구니에서 제거
+            log.info("요청 파라미터 확인: {}", request.getParameterMap().keySet());
+
+// 장바구니에서 주문한 경우, 주문한 상품만 장바구니에서 제거하는 로직
+            log.info("장바구니 항목 삭제 시작");
+
+// 먼저 itemId 파라미터 확인
+            String[] itemIdsArray = request.getParameterValues("itemId");
+            List<Long> basketItemIds = new ArrayList<>();
+
+// itemId 파라미터가 없으면 basketItemId 파라미터 확인
+            if (itemIdsArray == null || itemIdsArray.length == 0) {
+                log.info("itemId 파라미터가 없어 basketItemId 파라미터 확인");
+                String[] basketItemIdsArray = request.getParameterValues("basketItemId");
+
+                if (basketItemIdsArray != null && basketItemIdsArray.length > 0) {
+                    log.info("basketItemId 파라미터 발견: {} 개", basketItemIdsArray.length);
+
+                    for (String itemIdStr : basketItemIdsArray) {
+                        log.info("처리할 장바구니 항목 ID (basketItemId): {}", itemIdStr);
+                        try {
+                            Long itemId = Long.parseLong(itemIdStr);
+                            basketItemIds.add(itemId);
+                        } catch (NumberFormatException e) {
+                            log.warn("장바구니 항목 ID 변환 중 오류: {}", e.getMessage());
+                        }
+                    }
+                } else {
+                    // basketItemId 파라미터도 없으면 OrderItemDTO에서 확인
+                    log.info("basketItemId 파라미터도 없어서 OrderItemDTO에서 확인");
+
+                    for (OrderItemDTO item : orderItems) {
+                        if (item.getBasketItemId() != null) {
+                            log.info("OrderItemDTO에서 장바구니 항목 ID 발견: {}", item.getBasketItemId());
+                            basketItemIds.add(item.getBasketItemId());
+                        }
+                    }
+                }
+            } else {
+                // itemId 파라미터가 있으면 그대로 사용
+                log.info("itemId 파라미터 발견: {} 개", itemIdsArray.length);
 
                 for (String itemIdStr : itemIdsArray) {
+                    log.info("처리할 장바구니 항목 ID (itemId): {}", itemIdStr);
                     try {
-                        itemIdList.add(Long.parseLong(itemIdStr));
+                        Long itemId = Long.parseLong(itemIdStr);
+                        basketItemIds.add(itemId);
                     } catch (NumberFormatException e) {
                         log.warn("장바구니 항목 ID 변환 중 오류: {}", e.getMessage());
                     }
                 }
+            }
 
-                if (!itemIdList.isEmpty()) {
-                    basketService.removeSelectedItems(userId, itemIdList);
-                }
+            // 장바구니 항목 삭제 실행
+            if (!basketItemIds.isEmpty()) {
+                log.info("장바구니에서 항목 {} 개 삭제 시도", basketItemIds.size());
+                boolean removed = basketService.removeSelectedItems(userId, basketItemIds);
+                log.info("장바구니 항목 삭제 결과: {}", removed);
+            } else {
+                log.info("삭제할 장바구니 항목이 없습니다. 이것은 직접 구매 또는 폼 제출 오류일 수 있습니다.");
+                // 전체 장바구니 비우기는 하지 않음
             }
 
             // 세션에서 주문 항목 정보 제거 (주문 완료 후)
@@ -168,7 +242,6 @@ public class OrderCreateCommand implements Command {
 
             // 주문 완료 페이지로 이동
             request.setAttribute("orderId", orderId);
-            basketService.clearBasket(userId);
             return "/WEB-INF/views/user/orderComplete.jsp";
 
         } catch (Exception e) {

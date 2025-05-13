@@ -397,4 +397,101 @@ public class ProductService {
     public int getProductCountByCategory(Long categoryId) {
         return productDAO.countByCategoryId(categoryId);
     }
+
+    /**
+     * 재고 확인 및 수량 업데이트(감소)
+     * @param productCode
+     * @param orderQuantity
+     * @return
+     */
+    public boolean checkAndUpdateStock(String productCode, int orderQuantity) {
+        int currentStock = productDAO.getProductStock(productCode);
+        if (currentStock < orderQuantity) {
+            return false; // 재고 부족
+        }
+        // 재고 감소
+        int result = productDAO.updateProductStock(productCode, currentStock - orderQuantity);
+        return result > 0; // int를 boolean으로 변환
+    }
+
+    public boolean hasEnoughStock(String productCode, int quantity) {
+        int currentStock = productDAO.getProductStock(productCode);
+        return currentStock >= quantity;
+    }
+
+    public boolean reduceStock(String productCode, int quantity) {
+        int currentStock = productDAO.getProductStock(productCode);
+        if (currentStock < quantity) {
+            return false;
+        }
+        int result = productDAO.updateProductStock(productCode, currentStock - quantity);
+        return result > 0; // int를 boolean으로 변환
+    }
+
+    /**
+     * 상품의 현재 재고 수량을 조회합니다.
+     * @param productCode 상품 코드
+     * @return 현재 재고 수량
+     */
+    public int getProductStock(String productCode) {
+        try {
+            return productDAO.getProductStock(productCode);
+        } catch (Exception e) {
+            log.error("상품 재고 조회 중 오류 발생: " + e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    /**
+     * 상품 재고를 주문 수량만큼 감소시킵니다.
+     * @param productCode 상품 코드
+     * @param orderQuantity 주문 수량
+     * @return 성공 여부
+     */
+    public boolean updateProductStock(String productCode, int orderQuantity) {
+        try {
+            // 현재 재고 조회
+            int currentStock = getProductStock(productCode);
+
+            // 재고가 부족한 경우
+            if (currentStock < orderQuantity) {
+                log.warn("상품 재고 부족: 상품코드={}, 현재재고={}, 주문수량={}",
+                        productCode, currentStock, orderQuantity);
+                return false;
+            }
+
+            // 재고 감소
+            int newStock = currentStock - orderQuantity;
+            int result = productDAO.updateProductStock(productCode, newStock);
+
+            return result > 0;  // 영향받은 행이 있으면 성공으로 간주
+        } catch (Exception e) {
+            log.error("상품 재고 업데이트 중 오류 발생: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 상품 재고를 증가시킵니다 (주문 취소 시 사용)
+     * @param productCode 상품 코드
+     * @param quantity 증가시킬 수량
+     * @return 성공 여부
+     */
+    public boolean increaseProductStock(String productCode, int quantity) {
+        try {
+            // 현재 재고 조회
+            int currentStock = getProductStock(productCode);
+
+            // 재고 증가
+            int newStock = currentStock + quantity;
+            log.info("상품 재고 증가: 상품코드={}, 현재재고={}, 증가수량={}, 새재고={}",
+                    productCode, currentStock, quantity, newStock);
+
+            int result = productDAO.updateProductStock(productCode, newStock);
+            return result > 0;
+        } catch (Exception e) {
+            log.error("상품 재고 증가 중 오류 발생: " + e.getMessage(), e);
+            return false;
+        }
+    }
 }

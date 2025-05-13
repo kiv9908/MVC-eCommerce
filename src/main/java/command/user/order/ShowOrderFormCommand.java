@@ -78,6 +78,10 @@ public class ShowOrderFormCommand implements Command {
                 // 상품 정보 조회
                 ProductDTO product = productService.getProductDTOByCode(productCode);
                 if (product != null) {
+                    if (product.getStock() < quantity) {
+                        request.setAttribute("errorMessage", "상품 '" + product.getProductName() + "'의 재고가 부족합니다. 현재 재고: " + product.getStock());
+                        return "/WEB-INF/views/common/error.jsp";
+                    }
                     OrderItemDTO orderItem = new OrderItemDTO();
                     orderItem.setOrderItemCount(1);
                     orderItem.setProductCode(productCode);
@@ -118,7 +122,7 @@ public class ShowOrderFormCommand implements Command {
                     log.info("장바구니 전체 항목 수: {}", basket.getItems().size());
 
                     int itemCount = 1;
-
+                    List<String> outOfStockProducts = new ArrayList<>();
                     // 선택된 장바구니 항목만 처리
                     for (Long itemId : itemIds) {
                         log.info("처리 중인 장바구니 항목 ID: {}", itemId);
@@ -140,7 +144,10 @@ public class ShowOrderFormCommand implements Command {
                             ProductDTO product = productService.getProductDTOByCode(basketItem.getProductCode());
                             if (product != null) {
                                 log.info("상품 정보 조회 성공: {}", product.getProductName());
-
+                                if (product.getStock() < basketItem.getQuantity()) {
+                                    outOfStockProducts.add(product.getProductName() + "(재고: " + product.getStock() + ", 요청: " + basketItem.getQuantity() + ")");
+                                    continue; // 이 상품은 주문 항목에 추가하지 않음
+                                }
                                 // 주문 항목 생성
                                 OrderItemDTO orderItem = new OrderItemDTO();
                                 orderItem.setOrderItemCount(itemCount++);
@@ -152,6 +159,7 @@ public class ShowOrderFormCommand implements Command {
                                 orderItem.setUserId(userId);
                                 orderItem.setProductName(product.getProductName());
                                 orderItem.setFileId(product.getFileId());
+                                orderItem.setBasketItemId(basketItem.getItemId());
 
                                 totalOrderAmount += basketItem.getAmount();
                                 totalDeliveryFee += product.getDeliveryFee();
@@ -165,10 +173,16 @@ public class ShowOrderFormCommand implements Command {
                             log.warn("해당 ID의 장바구니 항목을 찾을 수 없음: {}", itemId);
                         }
                     }
+                    if (!outOfStockProducts.isEmpty()) {
+                        request.setAttribute("errorMessage", "다음 상품의 재고가 부족하여 주문할 수 없습니다: " + String.join(", ", outOfStockProducts));
+                        return "/WEB-INF/views/common/error.jsp";
+                    }
                 } else {
                     log.warn("장바구니가 null이거나 항목이 없음");
                 }
             }
+
+
 
             // 주문 항목이 없는 경우
             if (orderItems.isEmpty()) {

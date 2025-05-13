@@ -233,6 +233,9 @@
                   <c:when test="${order.orderStatus eq '30'}">
                     <span class="order-status status-pending">배송 전</span>
                   </c:when>
+                  <c:when test="${order.orderStatus eq '60'}">
+                    <span class="order-status status-pending">주문 취소</span>
+                  </c:when>
                   <c:otherwise>
                     <span class="order-status status-pending">${order.orderStatus}</span>
                   </c:otherwise>
@@ -278,6 +281,7 @@
                   <span class="text-muted small ms-2">
                     <c:choose>
                       <c:when test="${order.paymentStatus eq '20'}">결제 완료</c:when>
+                      <c:when test="${order.paymentStatus eq '70'}">결제 취소</c:when>
                       <c:otherwise>${order.paymentStatus}</c:otherwise>
                     </c:choose>
                   </span>
@@ -297,7 +301,7 @@
             <div class="btn-container">
               <a href="${pageContext.request.contextPath}/user/order/detail.do?orderId=${order.orderId}" class="btn btn-primary btn-sm">상세보기</a>
 
-              <c:if test="${order.orderStatus eq '10' || order.orderStatus eq '30'}">
+              <c:if test="${order.orderStatus eq '30'}">
                 <button type="button" class="btn btn-outline-danger btn-sm"
                         onclick="cancelOrder('${order.orderId}')">주문취소</button>
               </c:if>

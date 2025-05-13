@@ -128,6 +128,9 @@
                                 <input type="hidden" name="quantity" value="${item.quantity}" />
                                 <input type="hidden" name="unitPrice" value="${item.unitPrice}" />
                                 <input type="hidden" name="itemDeliveryFee" value="${item.deliveryFee}" />
+                                <c:if test="${item.basketItemId != null}">
+                                    <input type="hidden" name="basketItemId" value="${item.basketItemId}" />
+                                </c:if>
                             </div>
                             <div class="col-md-3 text-center">
                                 <p class="mb-0">배송비:</p>

@@ -14,16 +14,13 @@
             <div class="col-md-6 offset-md-3">
                 <div class="card">
                     <div class="card-header bg-danger text-white">
-                        <h4>접근 제한</h4>
+                        <h4>error</h4>
                     </div>
                     <div class="card-body">
                         <div class="text-center mb-4">
                             <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
                         </div>
-                        <h5 class="card-title text-center">권한이 없습니다</h5>
-                        <p class="card-text text-center">
-                            ${errorMessage != null ? errorMessage : '이 페이지에 접근할 수 있는 권한이 없습니다.'}
-                        </p>
+                        <h5 class="card-title text-center">${errorMessage != null ? errorMessage : '이 페이지에 접근할 수 있는 권한이 없습니다.'}</h5>
                         <div class="text-center mt-4">
                             <a href="${pageContext.request.contextPath}/" class="btn btn-primary">홈으로 돌아가기</a>
                         </div>

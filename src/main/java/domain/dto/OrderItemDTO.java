@@ -32,6 +32,10 @@ public class OrderItemDTO {
     private String productName;        // 상품명
     private String fileId;             // 상품 이미지 파일 ID
 
+    // 장바구니 제거용
+    private Long basketItemId; // 장바구니 항목 ID
+
+
     /**
      * 유효성 검증 메서드
      */
