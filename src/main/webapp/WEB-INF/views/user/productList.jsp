@@ -172,7 +172,7 @@
               <div class="col">
                 <!-- 판매중인 상품은 clickable, 아닌 상품은 회색 처리 및 클릭 불가 -->
                 <div class="card product-card h-100 ${product.status eq '판매중' ? '' : 'unavailable-product'}"
-                  ${product.status eq '판매중' ? 'onclick="location.href=\'' += pageContext.request.contextPath += '/user/product/detail.do?code=' += product.productCode += '\'"' : ''}
+                  ${product.status eq '판매중' ? 'onclick="location.href=\'' += pageContext.request.contextPath += '/user/product/detail.do?productCode=' += product.productCode += '\'"' : ''}
                      style="${product.status eq '판매중' ? 'cursor: pointer;' : ''}">
 
                   <!-- 상품 상태 표시 (품절, 판매중지인 경우에만) -->

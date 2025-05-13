@@ -28,8 +28,8 @@ public class ProductDetailCommand implements Command {
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // URL에서 상품 코드 추출 (/user/product/detail.do?code=XXX 형식)
-        String productCode = request.getParameter("code");
+        // URL에서 상품 코드 추출 (/user/product/detail.do?productCode=XXX 형식)
+        String productCode = request.getParameter("productCode");
 
         if (productCode == null || productCode.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "상품 코드가 제공되지 않았습니다.");
