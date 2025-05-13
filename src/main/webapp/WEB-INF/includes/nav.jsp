@@ -13,29 +13,34 @@
                     <a class="nav-link" href="${pageContext.request.contextPath}/user/product/list.do">상품 보기</a>
                 </li>
 
+                <% if(session.getAttribute("isLoggedIn") != null && (Boolean)session.getAttribute("isLoggedIn")) { %>
                 <li class="nav-item">
                     <a class="nav-link" href="${pageContext.request.contextPath}/user/basket.do">장바구니</a>
                 </li>
-
-                <% if(session.getAttribute("isLoggedIn") != null && (Boolean)session.getAttribute("isLoggedIn")) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/modify">내 정보</a>
-                    </li>
-                    <% if(session.getAttribute("user") != null && ((UserDTO)session.getAttribute("user")).getUserType().equals("20")) { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/admin/user/list">관리자 페이지</a>
-                    </li>
-                    <% } %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/logout">로그아웃</a>
-                    </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/order/list.do">주문관리</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/modify">내 정보</a>
+                </li>
+                <% if(session.getAttribute("user") != null && ((UserDTO)session.getAttribute("user")).getUserType().equals("20")) { %>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/admin/user/list">관리자 페이지</a>
+                </li>
+                <% } %>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/logout">로그아웃</a>
+                </li>
                 <% } else { %>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/login">로그인</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="${pageContext.request.contextPath}/user/join">회원가입</a>
-                    </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/basket.do">장바구니</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/login">로그인</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/join">회원가입</a>
+                </li>
                 <% } %>
             </ul>
         </div>

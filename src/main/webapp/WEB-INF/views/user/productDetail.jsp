@@ -337,7 +337,7 @@
     </c:if>
 
     // 폼 액션 변경 후 제출
-    form.action = '${pageContext.request.contextPath}/user/order/order.do';
+    form.action = '${pageContext.request.contextPath}/user/order/form.do';
     form.submit();
   }
 </script>
