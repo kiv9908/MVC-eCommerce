@@ -100,6 +100,26 @@
       margin: 3rem 0;
       text-align: center;
     }
+    /* 품절/판매중지 상품 스타일 */
+    .unavailable-item {
+      opacity: 0.6;
+    }
+    .status-label {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-left: 10px;
+      font-weight: normal;
+    }
+    .sold-out {
+      background-color: #dc3545;
+      color: white;
+    }
+    .discontinued {
+      background-color: #6c757d;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -140,11 +160,33 @@
           <form id="basketForm" action="${pageContext.request.contextPath}/user/basket.do/update" method="POST">
             <div class="basket-items">
               <c:forEach var="item" items="${basket.items}" varStatus="status">
-                <div class="basket-item">
+                <%-- 상품 상태 확인 --%>
+                <c:set var="productAvailable" value="true" />
+                <c:set var="statusLabel" value="" />
+
+                <c:forEach var="product" items="${productList}">
+                  <c:if test="${product.productCode eq item.productCode}">
+                    <c:choose>
+                      <c:when test="${product.stock <= 0}">
+                        <c:set var="productAvailable" value="false" />
+                        <c:set var="statusLabel" value="품절" />
+                        <c:set var="statusClass" value="sold-out" />
+                      </c:when>
+                      <c:when test="${product.status ne '판매중'}">
+                        <c:set var="productAvailable" value="false" />
+                        <c:set var="statusLabel" value="판매중지" />
+                        <c:set var="statusClass" value="discontinued" />
+                      </c:when>
+                    </c:choose>
+                  </c:if>
+                </c:forEach>
+
+                <div class="basket-item ${productAvailable ? '' : 'unavailable-item'}">
                   <div class="row align-items-center">
                     <div class="col-md-1">
                       <div class="form-check">
-                        <input class="form-check-input item-checkbox" type="checkbox" name="itemId" value="${item.itemId}" id="item${status.index}" checked>
+                        <input class="form-check-input item-checkbox" type="checkbox" name="itemId" value="${item.itemId}" id="item${status.index}"
+                          ${productAvailable ? 'checked' : 'disabled'}>
                       </div>
                     </div>
                     <div class="col-md-2">
@@ -158,14 +200,19 @@
                       </c:choose>
                     </div>
                     <div class="col-md-5">
-                      <h5 class="basket-item-title">${item.productName}</h5>
+                      <h5 class="basket-item-title">
+                          ${item.productName}
+                        <c:if test="${not empty statusLabel}">
+                          <span class="status-label ${statusClass}">${statusLabel}</span>
+                        </c:if>
+                      </h5>
                       <p class="basket-item-price"><fmt:formatNumber value="${item.price}" type="currency" currencySymbol="" />원</p>
                     </div>
                     <div class="col-md-3">
                       <div class="input-group quantity-control">
-                        <button class="btn btn-outline-secondary decrease-btn" type="button" data-item-id="${item.itemId}">-</button>
-                        <input type="text" class="form-control text-center quantity-input" name="quantity" data-item-id="${item.itemId}" value="${item.quantity}" />
-                        <button class="btn btn-outline-secondary increase-btn" type="button" data-item-id="${item.itemId}">+</button>
+                        <button class="btn btn-outline-secondary decrease-btn" type="button" data-item-id="${item.itemId}" ${productAvailable ? '' : 'disabled'}>-</button>
+                        <input type="text" class="form-control text-center quantity-input" name="quantity" data-item-id="${item.itemId}" value="${item.quantity}" ${productAvailable ? '' : 'disabled'} />
+                        <button class="btn btn-outline-secondary increase-btn" type="button" data-item-id="${item.itemId}" ${productAvailable ? '' : 'disabled'}>+</button>
                       </div>
                     </div>
                     <div class="col-md-1">
@@ -194,7 +241,6 @@
     </c:choose>
   </div>
 </div>
-
 
 <!-- 부트스트랩 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -237,9 +283,9 @@
     form.submit();
   }
 
-  // 전체 선택/해제
+  // 전체 선택/해제 (품절/판매중지 상품 제외)
   function selectAllItems(select) {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const checkboxes = document.querySelectorAll('.item-checkbox:not([disabled])');
     checkboxes.forEach(checkbox => {
       checkbox.checked = select;
     });
@@ -260,18 +306,15 @@
     document.querySelectorAll('.decrease-btn').forEach(button => {
       button.addEventListener('click', function() {
         const itemId = this.getAttribute('data-item-id');
-        const allInputs = document.querySelectorAll('.quantity-input');
-
-        // 부모 요소를 통해 접근
         const inputContainer = this.closest('.input-group');
         const input = inputContainer ? inputContainer.querySelector('.quantity-input') : null;
 
         if (input) {
           let value = parseInt(input.value);
-          value -= 1;
-          location.href = '${pageContext.request.contextPath}/user/basket.do/update?itemId=' + itemId + '&quantity=' + value;
-        } else {
-          console.error("수량 입력 필드를 찾을 수 없습니다.");
+          if (value > 1) { // 최소 수량은 1
+            value -= 1;
+            location.href = '${pageContext.request.contextPath}/user/basket.do/update?itemId=' + itemId + '&quantity=' + value;
+          }
         }
       });
     });
@@ -280,8 +323,6 @@
     document.querySelectorAll('.increase-btn').forEach(button => {
       button.addEventListener('click', function() {
         const itemId = this.getAttribute('data-item-id');
-        const allInputs = document.querySelectorAll('.quantity-input');
-        // 부모 요소를 통해 접근
         const inputContainer = this.closest('.input-group');
         const input = inputContainer ? inputContainer.querySelector('.quantity-input') : null;
 
@@ -289,8 +330,6 @@
           let value = parseInt(input.value);
           value += 1;
           location.href = '${pageContext.request.contextPath}/user/basket.do/update?itemId=' + itemId + '&quantity=' + value;
-        } else {
-          console.error("수량 입력 필드를 찾을 수 없습니다.");
         }
       });
     });

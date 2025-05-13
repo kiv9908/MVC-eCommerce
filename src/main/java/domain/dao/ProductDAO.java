@@ -45,4 +45,20 @@ public interface ProductDAO {
     List<ProductDTO> findByCategoryId(Long categoryId, int offset, int limit);
     int countByCategoryId(Long categoryId);
     List<ProductDTO> findByCategoryIdOrderByPriceWithPagination(Long categoryId, boolean ascending, int offset, int limit);
+
+    /**
+     * 상품의 현재 재고 수량을 조회합니다.
+     * @param productCode 상품 코드
+     * @return 현재 재고 수량
+     */
+    int getProductStock(String productCode);
+
+    /**
+     * 상품 재고를 업데이트합니다.
+     * @param productCode 상품 코드
+     * @param newStock 새로운 재고 수량
+     * @return 성공 시 1, 실패 시 0
+     */
+    int updateProductStock(String productCode, int newStock);
+
 }

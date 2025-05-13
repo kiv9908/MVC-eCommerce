@@ -105,6 +105,7 @@ public class OrderDetailCommand implements Command {
         statusList.add(new String[]{"30", "배송 전"});
         statusList.add(new String[]{"40", "배송 중"});
         statusList.add(new String[]{"50", "배송 완료"});
+        statusList.add(new String[]{"60", "주문 취소"});
         return statusList;
     }
 
@@ -115,6 +116,7 @@ public class OrderDetailCommand implements Command {
     private List<String[]> getPaymentStatusList() {
         List<String[]> statusList = new java.util.ArrayList<>();
         statusList.add(new String[]{"20", "결제완료"});
+        statusList.add(new String[]{"70", "결제취소"});
         return statusList;
     }
 }

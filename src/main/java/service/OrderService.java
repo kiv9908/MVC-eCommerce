@@ -1,5 +1,6 @@
 package service;
 
+import config.AppConfig;
 import domain.dao.OrderDAO;
 import domain.dao.OrderDAOImpl;
 import domain.dto.OrderDTO;
@@ -16,12 +17,14 @@ import java.util.List;
 public class OrderService {
 
     private OrderDAO orderDAO;
+    private ProductService productService;
 
     /**
      * 생성자: OrderDAO 구현체 초기화
      */
     public OrderService() {
         this.orderDAO = new OrderDAOImpl();
+        this.productService = AppConfig.getInstance().getProductService();
     }
 
     /**
@@ -343,4 +346,5 @@ public class OrderService {
             return false;
         }
     }
+
 }
