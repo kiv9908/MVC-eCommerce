@@ -201,8 +201,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-
+  // 전역 함수 정의
   // 선택 상품 삭제
   function deleteSelectedItems() {
     const checkedBoxes = document.querySelectorAll('input[name="itemId"]:checked');
@@ -234,7 +233,7 @@
     }
 
     const form = document.getElementById('basketForm');
-    form.action = '${pageContext.request.contextPath}/order/checkout.do';
+    form.action = '${pageContext.request.contextPath}/user/order/order.do';
     form.submit();
   }
 
@@ -246,17 +245,18 @@
     });
   }
 
-  // 개별 항목 삭제
-  document.querySelectorAll('.delete-item').forEach(button => {
-    button.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-item-id');
-      if (confirm('이 상품을 장바구니에서 삭제하시겠습니까?')) {
-        location.href = '${pageContext.request.contextPath}/user/basket.do/delete?itemId=' + itemId;
-      }
+  document.addEventListener('DOMContentLoaded', function() {
+    // 개별 항목 삭제
+    document.querySelectorAll('.delete-item').forEach(button => {
+      button.addEventListener('click', function() {
+        const itemId = this.getAttribute('data-item-id');
+        if (confirm('이 상품을 장바구니에서 삭제하시겠습니까?')) {
+          location.href = '${pageContext.request.contextPath}/user/basket.do/delete?itemId=' + itemId;
+        }
+      });
     });
-  });
 
-// 수량 증가 버튼 처리
+    // 수량 감소 버튼 처리
     document.querySelectorAll('.decrease-btn').forEach(button => {
       button.addEventListener('click', function() {
         const itemId = this.getAttribute('data-item-id');
@@ -294,7 +294,6 @@
         }
       });
     });
-
   });
 </script>
 </body>
