@@ -37,7 +37,7 @@ public class BasketUpdateCommand implements Command {
 
         if (user == null) {
             // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-            return "redirect:/user/login.do";
+            return "redirect:/user/login";
         }
 
         String userId = user.getUserId();

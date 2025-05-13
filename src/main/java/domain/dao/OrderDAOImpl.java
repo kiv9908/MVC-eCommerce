@@ -260,7 +260,7 @@ public class OrderDAOImpl implements OrderDAO {
             conn = DatabaseConnection.getConnection();
 
             String sql = "INSERT INTO tb_order_item (id_order_item, id_order, cn_order_item, " +
-                    "no_product, no_user, qt_unit_price, qt_order_item, qt_order_item_amount, " +
+                    "no_product, id_user, qt_unit_price, qt_order_item, qt_order_item_amount, " +
                     "qt_order_item_delivery_fee, st_payment, no_register, da_first_date) " +
                     "VALUES ('OT' || LPAD(seq_tb_order_item.nextval, 7, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
 
@@ -617,7 +617,7 @@ public class OrderDAOImpl implements OrderDAO {
         item.setOrderId(rs.getString("id_order"));
         item.setOrderItemCount(rs.getInt("cn_order_item"));
         item.setProductCode(rs.getString("no_product"));
-        item.setUserId(rs.getString("no_user"));
+        item.setUserId(rs.getString("id_user"));
         item.setUnitPrice(rs.getInt("qt_unit_price"));
         item.setQuantity(rs.getInt("qt_order_item"));
         item.setAmount(rs.getInt("qt_order_item_amount"));
