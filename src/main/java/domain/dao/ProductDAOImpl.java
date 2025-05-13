@@ -457,8 +457,8 @@ public class ProductDAOImpl implements ProductDAO {
             conn = DatabaseConnection.getConnection();
 
             String sql = "SELECT p.* FROM TB_PRODUCT p " +
-                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.product_code " +
-                    "WHERE m.category_id = ? " +
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ? " +
                     "ORDER BY p.da_first_date DESC " +
                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
@@ -491,8 +491,8 @@ public class ProductDAOImpl implements ProductDAO {
             conn = DatabaseConnection.getConnection();
 
             String sql = "SELECT COUNT(*) FROM TB_PRODUCT p " +
-                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.product_code " +
-                    "WHERE m.category_id = ?";
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ?";
             pstmt = conn.prepareStatement(sql);
             pstmt.setLong(1, categoryId);
             rs = pstmt.executeQuery();
@@ -519,8 +519,8 @@ public class ProductDAOImpl implements ProductDAO {
             conn = DatabaseConnection.getConnection();
 
             String sql = "SELECT p.* FROM TB_PRODUCT p " +
-                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.product_code " +
-                    "WHERE m.category_id = ? " +
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ? " +
                     "ORDER BY p.qt_sale_price " + (ascending ? "ASC" : "DESC") + " " +
                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 

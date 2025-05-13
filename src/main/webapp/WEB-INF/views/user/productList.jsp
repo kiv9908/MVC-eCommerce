@@ -25,10 +25,60 @@
       height: 160px; /* 이미지 높이 조정 */
       object-fit: cover;
     }
-
     .card-title {
       font-size: 1rem; /* 제목 크기 조정 */
       margin-bottom: 0.5rem;
+    }
+    .product-status {
+      font-size: 0.7rem; /* 상태 표시 크기 조정 */
+      padding: 2px 6px;
+    }
+    .category-active {
+      background-color: #f8f9fa;
+      color: #212529;
+      font-weight: bold;
+      border-left: 3px solid #0d6efd;
+    }
+    .list-group-item.category-active {
+      box-shadow: 0 0 5px rgba(13, 110, 253, 0.2);
+    }
+    .list-group-item.category-active:hover {
+      background-color: #e9ecef;
+    }
+    /* 판매중이 아닌 상품 스타일 */
+    .unavailable-product {
+      opacity: 0.6;
+      filter: grayscale(80%);
+      position: relative;
+      overflow: hidden;
+      transition: none;
+      box-shadow: none;
+    }
+
+    .unavailable-product:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 품절/판매중지 배지 스타일 */
+    .unavailable-badge {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-weight: bold;
+      z-index: 2;
+    }
+
+    /* 판매중이 아닌 상품의 카드 내용 스타일 */
+    .unavailable-product .card-title,
+    .unavailable-product .card-text,
+    .unavailable-product .text-muted {
+      color: #6c757d !important;
     }
   </style>
 </head>
@@ -37,35 +87,24 @@
 <%@ include file="/WEB-INF/includes/nav.jsp" %>
 
 <!-- 히어로 섹션 -->
-<section class="hero-section text-center">
-  <div class="container">
-    <h1 class="display-4 mb-4 fw-bold">쇼핑을 더 쉽게, 더 즐겁게</h1>
-    <p class="lead mb-5">다양한 상품을 합리적인 가격에 만나보세요. 지금 바로 쇼핑을 시작하세요!</p>
-    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-      <a href="${pageContext.request.contextPath}/product/list.do" class="btn btn-light btn-lg px-4 me-sm-3">상품 보기</a>
-      <% if(session.getAttribute("isLoggedIn") == null || !(Boolean)session.getAttribute("isLoggedIn")) { %>
-      <a href="${pageContext.request.contextPath}/user/join" class="btn btn-outline-light btn-lg px-4">회원가입</a>
-      <% } %>
-    </div>
-  </div>
-</section>
+<%@ include file="/WEB-INF/includes/hero.jsp" %>
 
 <div class="container mt-4">
   <div class="row">
     <!-- 카테고리 사이드바 -->
-    <div class="col-md-3 mb-4">
+    <div class="col-md-2 mb-4">
       <div class="card">
         <div class="card-header bg-dark text-white">
           <h5 class="card-title mb-0">카테고리</h5>
         </div>
         <div class="list-group list-group-flush">
           <a href="${pageContext.request.contextPath}/user/product/list.do"
-             class="list-group-item list-group-item-action ${empty categoryId ? 'category-active' : ''}">
+             class="list-group-item list-group-item-action ${empty param.categoryId ? 'category-active' : ''}">
             전체 상품
           </a>
           <c:forEach var="category" items="${categories}">
             <a href="${pageContext.request.contextPath}/user/product/list.do?categoryId=${category.id}"
-               class="list-group-item list-group-item-action ${category.id eq categoryId ? 'category-active' : ''}">
+               class="list-group-item list-group-item-action ${category.id eq param.categoryId ? 'category-active' : ''}">
                 ${category.name}
             </a>
           </c:forEach>
@@ -75,37 +114,43 @@
 
     <!-- 상품 목록 -->
     <div class="col-md-9">
-      <!-- 검색 및 필터 영역 -->
+      <!-- 검색, 필터링, 상품 개수를 한 줄에 표시 -->
       <div class="card mb-4">
         <div class="card-body">
-          <form action="${pageContext.request.contextPath}/user/product/list.do" method="get" class="row g-3">
-            <div class="col-md-8">
-              <div class="input-group">
-                <input type="text" class="form-control" name="keyword"
-                       placeholder="상품명 검색" value="${pageDTO.keyword}">
-                <button class="btn btn-dark" type="submit">검색</button>
-              </div>
+          <div class="row align-items-center">
+            <!-- 상품 개수 표시 (왼쪽) -->
+            <div class="col-md-2">
+              <span class="fw-bold">총 ${pageDTO.totalCount}개 상품</span>
             </div>
-            <div class="col-md-4">
-              <select name="sortBy" class="form-select" onchange="this.form.submit()">
-                <option value="" ${empty pageDTO.sortBy ? 'selected' : ''}>기본 정렬</option>
-                <option value="priceAsc" ${pageDTO.sortBy eq 'priceAsc' ? 'selected' : ''}>가격 낮은순</option>
-                <option value="priceDesc" ${pageDTO.sortBy eq 'priceDesc' ? 'selected' : ''}>가격 높은순</option>
-              </select>
-            </div>
-            <c:if test="${not empty categoryId}">
-              <input type="hidden" name="categoryId" value="${categoryId}">
-            </c:if>
-          </form>
-        </div>
-      </div>
 
-      <!-- 상품 개수 표시 -->
-      <div class="mb-3">
-        <span class="badge bg-secondary">총 ${pageDTO.totalCount}개 상품</span>
-        <c:if test="${not empty pageDTO.keyword}">
-          <span class="badge bg-info">"${pageDTO.keyword}" 검색결과</span>
-        </c:if>
+            <!-- 검색 및 필터링 (오른쪽) -->
+            <div class="col-md-10">
+              <form action="${pageContext.request.contextPath}/user/product/list.do" method="get" class="row g-2 justify-content-end">
+                <!-- 정렬 옵션 -->
+                <div class="col-md-3">
+                  <select name="sortBy" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="priceAsc" ${empty pageDTO.sortBy || pageDTO.sortBy eq 'priceAsc' ? 'selected' : ''}>가격 낮은순</option>
+                    <option value="priceDesc" ${pageDTO.sortBy eq 'priceDesc' ? 'selected' : ''}>가격 높은순</option>
+                  </select>
+                </div>
+
+                <!-- 검색창 -->
+                <div class="col-md-6">
+                  <div class="input-group">
+                    <input type="text" class="form-control form-control-sm" name="keyword"
+                           placeholder="상품명 검색" value="${pageDTO.keyword}">
+                    <button class="btn btn-sm btn-dark" type="submit">검색</button>
+                  </div>
+                </div>
+
+                <!-- 카테고리 ID가 있으면 hidden 필드로 포함 -->
+                <c:if test="${not empty param.categoryId}">
+                  <input type="hidden" name="categoryId" value="${param.categoryId}">
+                </c:if>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 상품 목록 표시 부분 -->
@@ -119,16 +164,23 @@
             </div>
           </c:when>
           <c:otherwise>
+            <!-- 표시할 상품 개수를 카운트하기 위한 변수 초기화 -->
+            <c:set var="displayedProducts" value="0" />
+
             <c:forEach var="product" items="${products}">
+              <c:set var="displayedProducts" value="${displayedProducts + 1}" />
               <div class="col">
-                <div class="card product-card h-100">
-                  <!-- 상품 상태 표시 -->
-                  <span class="product-status
-                            ${product.status eq '판매중' ? 'status-available' : ''}
-                            ${product.status eq '품절' ? 'status-soldout' : ''}
-                            ${product.status eq '판매중지' ? 'status-discontinued' : ''}">
-                      ${product.status}
-                  </span>
+                <!-- 판매중인 상품은 clickable, 아닌 상품은 회색 처리 및 클릭 불가 -->
+                <div class="card product-card h-100 ${product.status eq '판매중' ? '' : 'unavailable-product'}"
+                  ${product.status eq '판매중' ? 'onclick="location.href=\'' += pageContext.request.contextPath += '/user/product/detail.do?code=' += product.productCode += '\'"' : ''}
+                     style="${product.status eq '판매중' ? 'cursor: pointer;' : ''}">
+
+                  <!-- 상품 상태 표시 (품절, 판매중지인 경우에만) -->
+                  <c:if test="${product.status ne '판매중'}">
+                    <div class="unavailable-badge">
+                        ${product.status}
+                    </div>
+                  </c:if>
 
                   <!-- 상품 이미지 -->
                   <c:choose>
@@ -144,8 +196,6 @@
 
                   <div class="card-body">
                     <h5 class="card-title">${product.productName}</h5>
-                    <p class="card-text text-truncate">${product.detailExplain}</p>
-
                     <!-- 가격 정보 -->
                     <div class="d-flex justify-content-between align-items-center">
                       <div>
@@ -154,25 +204,29 @@
                             <fmt:formatNumber value="${product.customerPrice}" pattern="#,###" />원
                           </del>
                         </c:if>
-                        <div class="fs-5 fw-bold text-primary">
+                        <div class="fs-5 fw-bold ${product.status eq '판매중' ? 'text-primary' : 'text-muted'}">
                           <fmt:formatNumber value="${product.salePrice}" pattern="#,###" />원
                         </div>
                       </div>
-
-                      <!-- 상세 페이지 링크 -->
-                      <a href="${pageContext.request.contextPath}/user/product/detail/${product.productCode}"
-                         class="btn btn-sm btn-outline-dark">상세보기</a>
                     </div>
                   </div>
                 </div>
               </div>
             </c:forEach>
+
+            <!-- 상품이 하나도 없는 경우 메시지 표시 -->
+            <c:if test="${displayedProducts == 0}">
+              <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                  상품이 없습니다.
+                </div>
+              </div>
+            </c:if>
           </c:otherwise>
         </c:choose>
       </div>
 
       <!-- 페이지네이션 -->
-      <c:if test="${pageDTO.totalPages > 1}">
         <nav class="mt-4" aria-label="상품 목록 페이지네이션">
           <ul class="pagination justify-content-center">
             <!-- 이전 페이지 -->
@@ -212,10 +266,12 @@
             </c:if>
           </ul>
         </nav>
-      </c:if>
     </div>
   </div>
 </div>
+
+<!-- 푸터 포함 -->
+<%@ include file="/WEB-INF/includes/footer.jsp" %>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -25,15 +25,6 @@ public class ProductListCommand implements Command {
         AppConfig appConfig = AppConfig.getInstance();
         this.productService = appConfig.getProductService();
         this.categoryService = appConfig.getCategoryService();
-
-        // 서비스 초기화 확인
-        if (this.productService == null) {
-            log.error("ProductService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
-        }
-
-        if (this.categoryService == null) {
-            log.error("CategoryService가 초기화되지 않았습니다. AppConfig 설정을 확인해주세요.");
-        }
     }
 
     @Override
