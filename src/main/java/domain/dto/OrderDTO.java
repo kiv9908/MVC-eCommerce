@@ -60,40 +60,4 @@ public class OrderDTO {
         return true;
     }
 
-    /**
-     * 주문 상태 코드를 사람이 읽을 수 있는 문자열로 변환
-     * @return 주문 상태 문자열
-     */
-    public String getOrderStatusText() {
-        if (orderStatus == null) {
-            return "알 수 없음";
-        }
-
-        switch (orderStatus) {
-            case "ORD1": return "결제완료";
-            case "ORD2": return "상품준비중";
-            case "ORD3": return "배송중";
-            case "ORD4": return "배송완료";
-            case "ORD5": return "취소";
-            case "ORD6": return "환불";
-            default: return "알 수 없음";
-        }
-    }
-
-    /**
-     * 결제 상태 코드를 사람이 읽을 수 있는 문자열로 변환
-     * @return 결제 상태 문자열
-     */
-    public String getPaymentStatusText() {
-        if (paymentStatus == null) {
-            return "알 수 없음";
-        }
-
-        switch (paymentStatus) {
-            case "PAY1": return "결제대기";
-            case "PAY2": return "결제완료";
-            case "PAY3": return "결제취소";
-            default: return "알 수 없음";
-        }
-    }
 }

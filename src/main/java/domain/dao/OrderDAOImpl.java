@@ -225,9 +225,9 @@ public class OrderDAOImpl implements OrderDAO {
             pstmt.setString(9, orderDTO.getDeliveryAddress());
             pstmt.setString(10, orderDTO.getReceiverTelno());
             pstmt.setString(11, orderDTO.getDeliverySpace());
-            pstmt.setString(12, orderDTO.getOrderType() != null ? orderDTO.getOrderType() : "ORD1");
-            pstmt.setString(13, orderDTO.getOrderStatus() != null ? orderDTO.getOrderStatus() : "ORD1");
-            pstmt.setString(14, orderDTO.getPaymentStatus() != null ? orderDTO.getPaymentStatus() : "PAY1");
+            pstmt.setString(12, orderDTO.getOrderType() != null ? orderDTO.getOrderType() : "10");
+            pstmt.setString(13, orderDTO.getOrderStatus() != null ? orderDTO.getOrderStatus() : "10");
+            pstmt.setString(14, orderDTO.getPaymentStatus() != null ? orderDTO.getPaymentStatus() : "20");
             pstmt.setString(15, orderDTO.getRegisterId());
 
             pstmt.executeUpdate();
@@ -274,7 +274,7 @@ public class OrderDAOImpl implements OrderDAO {
             pstmt.setInt(6, orderItemDTO.getQuantity() != null ? orderItemDTO.getQuantity() : 1);
             pstmt.setInt(7, orderItemDTO.getAmount() != null ? orderItemDTO.getAmount() : 0);
             pstmt.setInt(8, orderItemDTO.getDeliveryFee() != null ? orderItemDTO.getDeliveryFee() : 0);
-            pstmt.setString(9, orderItemDTO.getPaymentStatus() != null ? orderItemDTO.getPaymentStatus() : "PAY1");
+            pstmt.setString(9, orderItemDTO.getPaymentStatus() != null ? orderItemDTO.getPaymentStatus() : "20");
             pstmt.setString(10, orderItemDTO.getRegisterId());
 
             result = pstmt.executeUpdate();

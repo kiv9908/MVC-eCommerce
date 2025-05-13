@@ -68,20 +68,5 @@ public class OrderItemDTO {
         return itemAmount + shipFee;
     }
 
-    /**
-     * 결제 상태 코드를 사람이 읽을 수 있는 문자열로 변환
-     * @return 결제 상태 문자열
-     */
-    public String getPaymentStatusText() {
-        if (paymentStatus == null) {
-            return "알 수 없음";
-        }
 
-        switch (paymentStatus) {
-            case "PAY1": return "결제대기";
-            case "PAY2": return "결제완료";
-            case "PAY3": return "결제취소";
-            default: return "알 수 없음";
-        }
-    }
 }
