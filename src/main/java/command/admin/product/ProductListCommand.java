@@ -24,11 +24,6 @@ public class ProductListCommand implements Command {
         AppConfig appConfig = AppConfig.getInstance();
         this.productService = appConfig.getProductService();
         this.fileService = appConfig.getFileService();
-
-        // fileService가 null이면 로그 남기기
-        if (this.fileService == null) {
-            log.error("FileService가 초기화되지 않았습니다. AppInitializer가 제대로 동작하는지 확인해주세요.");
-        }
     }
 
     @Override

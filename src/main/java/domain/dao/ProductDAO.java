@@ -41,4 +41,8 @@ public interface ProductDAO {
     // 검색 결과 상품 개수
     int countByProductName(String keyword);
 
+    // 카테고리별 상품 조회
+    List<ProductDTO> findByCategoryId(Long categoryId, int offset, int limit);
+    int countByCategoryId(Long categoryId);
+    List<ProductDTO> findByCategoryIdOrderByPriceWithPagination(Long categoryId, boolean ascending, int offset, int limit);
 }

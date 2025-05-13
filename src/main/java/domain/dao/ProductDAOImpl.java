@@ -446,6 +446,102 @@ public class ProductDAOImpl implements ProductDAO {
         return products;
     }
 
+    @Override
+    public List<ProductDTO> findByCategoryId(Long categoryId, int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT p.* FROM TB_PRODUCT p " +
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ? " +
+                    "ORDER BY p.da_first_date DESC " +
+                    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, categoryId);
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
+    @Override
+    public int countByCategoryId(Long categoryId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int count = 0;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT COUNT(*) FROM TB_PRODUCT p " +
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, categoryId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return count;
+    }
+
+    @Override
+    public List<ProductDTO> findByCategoryIdOrderByPriceWithPagination(Long categoryId, boolean ascending, int offset, int limit) {
+        List<ProductDTO> products = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+
+            String sql = "SELECT p.* FROM TB_PRODUCT p " +
+                    "JOIN TB_CATEGORY_PRODUCT_MAPPING m ON p.no_product = m.no_product " +
+                    "WHERE m.nb_category = ? " +
+                    "ORDER BY p.qt_sale_price " + (ascending ? "ASC" : "DESC") + " " +
+                    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setLong(1, categoryId);
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                ProductDTO productDTO = resultSetToProductDTO(rs);
+                products.add(productDTO);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResources(rs, pstmt, conn);
+        }
+        return products;
+    }
+
     private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection conn) {
         try {
             if (rs != null) rs.close();

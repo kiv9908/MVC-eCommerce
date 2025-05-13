@@ -98,32 +98,32 @@ public class ProductService {
     public boolean markAsSoldOut(String productCode) {
         try {
             log.info("품절 처리 시작: productCode={}", productCode);
-            
+
             // 현재 상품 정보 조회
             ProductDTO productDTO = productDAO.findByProductCode(productCode);
             if (productDTO == null) {
                 log.error("품절 처리 실패: 상품을 찾을 수 없음 (productCode={})", productCode);
                 return false;
             }
-            
+
             log.info("품절 처리 중: 상품명={}, 현재 재고={}", productDTO.getProductName(), productDTO.getStock());
-            
+
             // 재고를 0으로 설정
             boolean result = productDAO.modifyStock(productCode, 0);
-            
+
             if (result) {
                 log.info("품절 처리 성공: productCode={}", productCode);
             } else {
                 log.error("품절 처리 실패: 재고 업데이트 실패 (productCode={})", productCode);
             }
-            
+
             return result;
         } catch (Exception e) {
             log.error("상품 품절 처리 중 오류 발생: {}", e.getMessage(), e);
             return false;
         }
     }
-    
+
     /**
      * 상품을 판매 중지 상태로 변경 (판매 종료일을 현재 날짜로 설정)
      */
@@ -131,15 +131,15 @@ public class ProductService {
         try {
             // 현재 날짜-1를 종료일로 설정
             String currentDate = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            
+
             // 현재 상품 정보 조회
             ProductDTO productDTO = productDAO.findByProductCode(productCode);
             if (productDTO == null) {
                 return false;
             }
-            
+
             String startDate = productDTO.getStartDate(); // 시작일은 그대로 유지
-            
+
             // 판매 종료일을 현재 날짜로 설정하여 판매 중지 상태로 만듦
             return productDAO.modifySaleStatus(productCode, startDate, currentDate);
         } catch (Exception e) {
@@ -147,34 +147,34 @@ public class ProductService {
             return false;
         }
     }
-    
+
     /**
      * 상품을 판매중 상태로 변경 (재고 > 0 및 판매 기간 설정)
      */
     public boolean startSelling(String productCode) {
         try {
             boolean success = true;
-            
+
             // 현재 상품 정보 조회
             ProductDTO productDTO = productDAO.findByProductCode(productCode);
             if (productDTO == null) {
                 return false;
             }
-            
+
             // 1. 재고가 0이면 1로 설정
             if (productDTO.getStock() == null || productDTO.getStock() <= 0) {
                 success = productDAO.modifyStock(productCode, 1);
             }
-            
+
             if (!success) {
                 return false;
             }
-            
+
             // 2. 판매 기간 설정 (현재 날짜부터 1개월)
             LocalDate today = LocalDate.now();
             String startDate = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String endDate = today.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            
+
             // 판매 기간을 업데이트하여 판매중 상태로 만듦
             return productDAO.modifySaleStatus(productCode, startDate, endDate);
         } catch (Exception e) {
@@ -229,11 +229,16 @@ public class ProductService {
         return productDAO.findByProductNameOrderByPriceWithPagination(keyword, ascending, offset, pageSize);
     }
 
-    // ProductService.java에 추가
-    public PageDTO setupProductPage(PageDTO pageDTO) {
+    /**
+     * PageDTO 설정 메서드 (카테고리 지원)
+     */
+    public PageDTO setupProductPage(PageDTO pageDTO, Long categoryId) {
+        // 카테고리가 지정된 경우
+        if (categoryId != null) {
+            pageDTO.setTotalCount(getProductCountByCategory(categoryId));
+        }
         // 검색어가 있는 경우
-        if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
-            // 검색 결과 총 개수 조회
+        else if (pageDTO.getKeyword() != null && !pageDTO.getKeyword().trim().isEmpty()) {
             pageDTO.setTotalCount(getSearchResultCount(pageDTO.getKeyword()));
         } else {
             // 전체 상품 개수 조회
@@ -244,6 +249,13 @@ public class ProductService {
         pageDTO.calculatePagination();
 
         return pageDTO;
+    }
+
+    /**
+     * 기본 setupProductPage 메서드 (오버로드)
+     */
+    public PageDTO setupProductPage(PageDTO pageDTO) {
+        return setupProductPage(pageDTO, null);
     }
 
     // 페이지네이션 정보와 정렬 조건을 기반으로 상품 목록 조회
@@ -276,6 +288,30 @@ public class ProductService {
                         pageDTO.getCurrentPage(), pageDTO.getPageSize());
             }
         }
+    }
+
+    /**
+     * 카테고리별 상품 목록 조회 및 정렬 (확장)
+     */
+    public List<ProductDTO> getProductsByPage(PageDTO pageDTO, Long categoryId) {
+        // 카테고리가 지정된 경우
+        if (categoryId != null) {
+            // 정렬 조건에 따라 조회
+            if ("priceAsc".equals(pageDTO.getSortBy())) {
+                return getProductsByCategoryOrderByPriceWithPagination(
+                        categoryId, true, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else if ("priceDesc".equals(pageDTO.getSortBy())) {
+                return getProductsByCategoryOrderByPriceWithPagination(
+                        categoryId, false, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            } else {
+                // 기본 정렬 (최신순)
+                return getProductsByCategoryWithPagination(
+                        categoryId, pageDTO.getCurrentPage(), pageDTO.getPageSize());
+            }
+        }
+
+        // 카테고리가 없는 경우 기존 메서드 사용
+        return getProductsByPage(pageDTO);
     }
 
     // PageDTO에서 요청 파라미터 설정 메서드
@@ -337,5 +373,28 @@ public class ProductService {
             log.error("상품 및 관련 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    /**
+     * 카테고리별 상품 목록 조회
+     */
+    public List<ProductDTO> getProductsByCategoryWithPagination(Long categoryId, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByCategoryId(categoryId, offset, pageSize);
+    }
+
+    /**
+     * 카테고리별 상품 목록 가격순 정렬
+     */
+    public List<ProductDTO> getProductsByCategoryOrderByPriceWithPagination(Long categoryId, boolean ascending, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        return productDAO.findByCategoryIdOrderByPriceWithPagination(categoryId, ascending, offset, pageSize);
+    }
+
+    /**
+     * 카테고리별 상품 개수 조회
+     */
+    public int getProductCountByCategory(Long categoryId) {
+        return productDAO.countByCategoryId(categoryId);
     }
 }

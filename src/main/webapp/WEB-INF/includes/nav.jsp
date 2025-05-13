@@ -10,8 +10,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/product/list">상품 보기</a>
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/product/list.do">상품 보기</a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/user/basket.do">장바구니</a>
+                </li>
+
                 <% if(session.getAttribute("isLoggedIn") != null && (Boolean)session.getAttribute("isLoggedIn")) { %>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/user/modify">내 정보</a>
