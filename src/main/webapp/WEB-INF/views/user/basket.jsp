@@ -233,7 +233,7 @@
     }
 
     const form = document.getElementById('basketForm');
-    form.action = '${pageContext.request.contextPath}/user/order/order.do';
+    form.action = '${pageContext.request.contextPath}/user/order/form.do';
     form.submit();
   }
 
@@ -268,7 +268,7 @@
 
         if (input) {
           let value = parseInt(input.value);
-          value += 1;
+          value -= 1;
           location.href = '${pageContext.request.contextPath}/user/basket.do/update?itemId=' + itemId + '&quantity=' + value;
         } else {
           console.error("수량 입력 필드를 찾을 수 없습니다.");

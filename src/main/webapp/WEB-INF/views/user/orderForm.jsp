@@ -94,7 +94,7 @@
     <div class="order-container">
         <h2 class="mb-4">주문하기</h2>
 
-        <form id="orderForm" action="${pageContext.request.contextPath}/user/order/order.do" method="POST" onsubmit="return validateForm()">
+        <form id="orderForm" action="${pageContext.request.contextPath}/user/order/create.do" method="POST" onsubmit="return validateForm()">
             <!-- 주문 상품 목록 -->
             <div class="order-items mb-5">
                 <h4 class="mb-3">주문 상품</h4>
