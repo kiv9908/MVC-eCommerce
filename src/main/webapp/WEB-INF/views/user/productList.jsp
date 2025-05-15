@@ -103,10 +103,12 @@
             전체 상품
           </a>
           <c:forEach var="category" items="${categories}">
-            <a href="${pageContext.request.contextPath}/user/product/list.do?categoryId=${category.id}"
-               class="list-group-item list-group-item-action ${category.id eq param.categoryId ? 'category-active' : ''}">
-                ${category.name}
-            </a>
+            <c:if test="${category.level eq 2}">
+              <a href="${pageContext.request.contextPath}/user/product/list.do?categoryId=${category.id}"
+                 class="list-group-item list-group-item-action ${category.id eq param.categoryId ? 'category-active' : ''}">
+                  ${category.fullName}
+              </a>
+            </c:if>
           </c:forEach>
         </div>
       </div>

@@ -45,65 +45,120 @@ public class ProductDAOImpl implements ProductDAO {
     public void save(ProductDTO productDTO) {
         Connection conn = null;
         PreparedStatement pstmt = null;
+        PreparedStatement pstmtGetId = null;
+        ResultSet rs = null;
 
         try {
             conn = DatabaseConnection.getConnection();
-            
+
+            // 1. 먼저 시퀀스 값을 얻어와서 상품 코드 생성
+            String getSeqSQL = "SELECT 'PT' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 7, '0') FROM DUAL";
+            pstmtGetId = conn.prepareStatement(getSeqSQL);
+            rs = pstmtGetId.executeQuery();
+
+            String productCode = null;
+            if (rs.next()) {
+                productCode = rs.getString(1);
+                productDTO.setProductCode(productCode); // DTO에 상품 코드 설정
+                log.info("생성된 상품 코드: {}", productCode);
+            } else {
+                throw new SQLException("상품 코드 생성에 실패했습니다.");
+            }
+
+            // 2. 상품 테이블에 저장
             String sql = "INSERT INTO TB_PRODUCT (no_product, nm_product, nm_detail_explain, id_file, " +
                     "dt_start_date, dt_end_date, qt_customer_price, qt_sale_price, qt_stock, qt_delivery_fee, " +
-                    "no_register, da_first_date) VALUES ('PT' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 7, '0'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "no_register, da_first_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, productDTO.getProductName());
-            pstmt.setString(2, productDTO.getDetailExplain());
-            // fileId가 null일 수 있으므로 적절히 처리
-            if (productDTO.getFileId() != null) {
-                // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
-            String fileId = productDTO.getFileId();
-            if (fileId != null && fileId.length() > 30) {
-                // 30자로 잘라내기
-                fileId = fileId.substring(0, 30);
-                System.out.println("Warning: 파일 ID가 잘렸습니다. 원본: " + productDTO.getFileId() + ", 저장된 값: " + fileId);
-            }
-            pstmt.setString(3, fileId);
+
+            // 모든 파라미터 바인딩 명시적으로 처리
+            pstmt.setString(1, productCode);
+            pstmt.setString(2, productDTO.getProductName());
+
+            // NULL 가능한 값 처리
+            if (productDTO.getDetailExplain() != null) {
+                pstmt.setString(3, productDTO.getDetailExplain());
             } else {
                 pstmt.setNull(3, Types.VARCHAR);
             }
-            pstmt.setString(4, productDTO.getStartDate());
-            pstmt.setString(5, productDTO.getEndDate());
+
+            if (productDTO.getFileId() != null) {
+                // 파일 ID 길이 체크 (데이터베이스 제약조건: 최대 30자)
+                String fileId = productDTO.getFileId();
+                if (fileId.length() > 30) {
+                    fileId = fileId.substring(0, 30);
+                    log.warn("파일 ID가 잘렸습니다. 원본: {}, 저장된 값: {}", productDTO.getFileId(), fileId);
+                }
+                pstmt.setString(4, fileId);
+            } else {
+                pstmt.setNull(4, Types.VARCHAR);
+            }
+
+            pstmt.setString(5, productDTO.getStartDate());
+            pstmt.setString(6, productDTO.getEndDate());
 
             if (productDTO.getCustomerPrice() != null) {
-                pstmt.setInt(6, productDTO.getCustomerPrice());
+                pstmt.setInt(7, productDTO.getCustomerPrice());
             } else {
-                pstmt.setNull(6, Types.NUMERIC);
+                pstmt.setNull(7, Types.NUMERIC);
             }
 
-            pstmt.setInt(7, productDTO.getSalePrice());
+            pstmt.setInt(8, productDTO.getSalePrice());
 
             if (productDTO.getStock() != null) {
-                pstmt.setInt(8, productDTO.getStock());
-            } else {
-                pstmt.setNull(8, Types.NUMERIC);
-            }
-
-            if (productDTO.getDeliveryFee() != null) {
-                pstmt.setInt(9, productDTO.getDeliveryFee());
+                pstmt.setInt(9, productDTO.getStock());
             } else {
                 pstmt.setNull(9, Types.NUMERIC);
             }
 
-            pstmt.setString(10, productDTO.getRegisterId());
+            if (productDTO.getDeliveryFee() != null) {
+                pstmt.setInt(10, productDTO.getDeliveryFee());
+            } else {
+                pstmt.setNull(10, Types.NUMERIC);
+            }
+
+            pstmt.setString(11, productDTO.getRegisterId());
 
             if (productDTO.getFirstDate() != null) {
-                pstmt.setDate(11, new Date(productDTO.getFirstDate().getTime()));
+                pstmt.setDate(12, new Date(productDTO.getFirstDate().getTime()));
             } else {
-                pstmt.setNull(11, Types.DATE);
+                pstmt.setNull(12, Types.DATE);
             }
 
             pstmt.executeUpdate();
+            log.info("상품 저장 성공: {}", productCode);
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("상품 저장 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("상품 저장 실패", e);
         } finally {
-            closeResources(null, pstmt, conn);
+            try {
+                if (rs != null) rs.close();
+                if (pstmtGetId != null) pstmtGetId.close();
+                if (pstmt != null) pstmt.close();
+                if (conn != null) DatabaseConnection.closeConnection(conn);
+            } catch (SQLException e) {
+                log.error("리소스 해제 중 오류 발생: {}", e.getMessage(), e);
+            }
+        }
+    }
+
+    // 상품 코드 생성 메소드
+    private String generateProductCode(Connection conn) throws SQLException {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            String sql = "SELECT 'PT' || LPAD(SEQ_TB_PRODUCT.NEXTVAL, 7, '0') AS product_code FROM DUAL";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("product_code");
+            }
+            return null;
+        } finally {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
         }
     }
 

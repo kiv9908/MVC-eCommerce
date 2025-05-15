@@ -236,42 +236,42 @@ public class ProductCreateCommand implements Command {
      */
     private boolean handleCategoryMappings(HttpServletRequest request, String productCode) {
         try {
-            // 새로 추가된 카테고리 매핑 처리
-            String[] newCategoryIds = request.getParameterValues("newCategoryIds");
-            if (newCategoryIds != null) {
-                for (String categoryIdStr : newCategoryIds) {
-                    try {
-                        Long categoryId = Long.parseLong(categoryIdStr);
-                        MappingDTO mappingDTO = new MappingDTO();
-                        mappingDTO.setProductCode(productCode);
-                        mappingDTO.setCategoryId(categoryId);
+            // 단일 카테고리 ID 처리
+            String categoryIdStr = request.getParameter("categoryId");
+            if (categoryIdStr != null && !categoryIdStr.isEmpty()) {
+                try {
+                    Long categoryId = Long.parseLong(categoryIdStr);
+                    MappingDTO mappingDTO = new MappingDTO();
+                    mappingDTO.setProductCode(productCode);
+                    mappingDTO.setCategoryId(categoryId);
 
-                        // 등록자 정보 설정
-                        String userId = null;
-                        if (request.getSession().getAttribute("user") != null) {
-                            userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
-                        } else {
-                            userId = "admin"; // 기본값
-                        }
-                        mappingDTO.setRegisterUser(userId);
-
-                        // 중복 매핑 확인
-                        MappingDTO existingMapping = mappingService.getMappingByProductAndCategory(productCode, categoryId);
-                        if (existingMapping == null) {
-                            // 새 매핑 생성
-                            boolean created = mappingService.createMapping(mappingDTO);
-                            if (created) {
-                                log.info("새 카테고리 매핑 추가: 상품={}, 카테고리={}", productCode, categoryId);
-                            } else {
-                                log.warn("카테고리 매핑 추가 실패: 상품={}, 카테고리={}", productCode, categoryId);
-                            }
-                        } else {
-                            log.info("카테고리 매핑이 이미 존재합니다: 상품={}, 카테고리={}", productCode, categoryId);
-                        }
-                    } catch (NumberFormatException e) {
-                        log.error("잘못된 카테고리 ID 형식: {}", categoryIdStr);
+                    // 등록자 정보 설정
+                    String userId = null;
+                    if (request.getSession().getAttribute("user") != null) {
+                        userId = ((UserDTO) request.getSession().getAttribute("user")).getUserId();
+                    } else {
+                        userId = "admin"; // 기본값
                     }
+                    mappingDTO.setRegisterUser(userId);
+
+                    // 중복 매핑 확인
+                    MappingDTO existingMapping = mappingService.getMappingByProductAndCategory(productCode, categoryId);
+                    if (existingMapping == null) {
+                        // 새 매핑 생성
+                        boolean created = mappingService.createMapping(mappingDTO);
+                        if (created) {
+                            log.info("새 카테고리 매핑 추가: 상품={}, 카테고리={}", productCode, categoryId);
+                        } else {
+                            log.warn("카테고리 매핑 추가 실패: 상품={}, 카테고리={}", productCode, categoryId);
+                        }
+                    } else {
+                        log.info("카테고리 매핑이 이미 존재합니다: 상품={}, 카테고리={}", productCode, categoryId);
+                    }
+                } catch (NumberFormatException e) {
+                    log.error("잘못된 카테고리 ID 형식: {}", categoryIdStr);
                 }
+            } else {
+                log.warn("카테고리 ID가 선택되지 않았습니다: 상품={}", productCode);
             }
 
             return true;
